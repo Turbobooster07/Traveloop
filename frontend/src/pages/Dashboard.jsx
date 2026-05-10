@@ -161,45 +161,85 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div className="dashboard-inner">
-          <header className="dashboard-header">
-            <h1>Welcome back, {user.first_name}!</h1>
-            <p className="subtitle">Here's what's happening with your travels today.</p>
+        <div className="dashboard-inner" style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+          <header className="dashboard-header" style={{ textAlign: 'left', padding: '0 8px' }}>
+            <h1 style={{ fontSize: '36px', fontWeight: '800', fontFamily: "'Outfit', sans-serif", color: 'var(--text-main)', letterSpacing: '-1px', margin: '0 0 8px 0' }}>Welcome back, {user.first_name}!</h1>
+            <p className="subtitle" style={{ fontSize: '16px', margin: 0, textAlign: 'left' }}>Here's what's happening with your travels today.</p>
           </header>
 
           <div className="dashboard-content">
-            <div className="dashboard-card" style={{ flex: 1 }}>
-              <h3>Upcoming Trips</h3>
+            <div className="dashboard-card" style={{ 
+              flex: 1,
+              background: 'rgba(255, 255, 255, 0.4)',
+              backdropFilter: 'blur(30px) saturate(150%)',
+              WebkitBackdropFilter: 'blur(30px) saturate(150%)',
+              border: '1px solid rgba(255, 255, 255, 0.6)',
+              borderRadius: '32px',
+              padding: '40px',
+              boxShadow: '0 20px 40px -10px rgba(0, 0, 0, 0.05), inset 0 2px 5px rgba(255, 255, 255, 0.8)'
+             }}>
+              <h3 style={{ fontSize: '24px', fontWeight: '700', fontFamily: "'Outfit', sans-serif", margin: '0 0 24px 0', color: 'var(--text-main)' }}>Upcoming Trips</h3>
               {trips.length > 0 ? (
-                <div className="trips-list" style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div className="trips-list" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   {trips.map(trip => (
-                    <div key={trip.id} className="trip-item" style={{ background: 'rgba(0,0,0,0.2)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                      <h4 style={{ margin: '0 0 4px 0', color: 'var(--primary-color)' }}>{trip.destination}</h4>
-                      <p style={{ margin: '0 0 8px 0', fontSize: '13px', color: 'var(--text-muted)' }}>
+                    <div key={trip.id} className="trip-item" style={{ 
+                      background: 'rgba(255, 255, 255, 0.6)', 
+                      padding: '24px', 
+                      borderRadius: '20px', 
+                      border: '1px solid rgba(255, 255, 255, 0.8)',
+                      boxShadow: '0 4px 15px rgba(0,0,0,0.03)',
+                      transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                      cursor: 'pointer'
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 12px 25px rgba(0,0,0,0.08)'; e.currentTarget.style.background = 'rgba(255, 255, 255, 0.8)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.03)'; e.currentTarget.style.background = 'rgba(255, 255, 255, 0.6)'; }}
+                    >
+                      <h4 style={{ margin: '0 0 8px 0', color: 'var(--text-main)', fontSize: '18px', fontWeight: '700' }}>{trip.destination}</h4>
+                      <p style={{ margin: '0 0 16px 0', fontSize: '14px', color: 'var(--text-muted)' }}>
                         {new Date(trip.start_date).toLocaleDateString()} - {new Date(trip.end_date).toLocaleDateString()}
                       </p>
-                      <span style={{ fontSize: '12px', background: 'rgba(16, 185, 129, 0.2)', color: '#10b981', padding: '4px 8px', borderRadius: '4px' }}>{trip.status}</span>
+                      <span style={{ fontSize: '13px', background: 'var(--accent-green-bg)', color: 'var(--accent-green-text)', padding: '6px 14px', borderRadius: '100px', fontWeight: '600' }}>{trip.status || 'Planned'}</span>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="subtitle" style={{ marginTop: '12px' }}>You have no upcoming trips. Start planning your next adventure!</p>
+                <p className="subtitle" style={{ margin: '20px 0', textAlign: 'left' }}>You have no upcoming trips. Start planning your next adventure!</p>
               )}
-              <button className="login-btn" style={{ width: 'auto', padding: '10px 24px', marginTop: '20px' }} onClick={() => navigate('/plan-trip', { state: { user } })}>Plan a Trip</button>
+              <button className="dash-btn-chip" style={{ marginTop: '24px', background: 'var(--text-main)', color: 'white', border: 'none', padding: '14px 28px', fontSize: '15px' }} onClick={() => navigate('/plan-trip', { state: { user } })}>Plan a Trip</button>
             </div>
           </div>
 
           {/* Recommendations Section */}
-          <div className="recommendations-section" style={{ marginTop: '40px' }}>
-            <h2 style={{ marginBottom: '20px' }}>Recommended For You</h2>
-            <div className="recommendations-scroll">
+          <div className="recommendations-section" style={{ 
+              marginTop: '16px',
+              background: 'rgba(255, 255, 255, 0.3)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255, 255, 255, 0.5)',
+              borderRadius: '32px',
+              padding: '40px',
+              boxShadow: '0 10px 30px -5px rgba(0, 0, 0, 0.03)'
+           }}>
+            <h2 style={{ fontSize: '24px', fontWeight: '700', fontFamily: "'Outfit', sans-serif", margin: '0 0 24px 0', color: 'var(--text-main)' }}>Recommended For You</h2>
+            <div className="recommendations-scroll" style={{ display: 'flex', gap: '24px', overflowX: 'auto', paddingBottom: '8px', scrollbarWidth: 'none' }}>
               {recommendations.map(rec => (
-                <div key={rec.id} className="recommendation-card">
-                  <img src={rec.image} alt={rec.title} />
-                  <div className="recommendation-content">
-                    <h4>{rec.title}</h4>
-                    <p className="location">{rec.location}</p>
-                    <p className="desc">{rec.description}</p>
+                <div key={rec.id} className="recommendation-card" style={{ 
+                  minWidth: '280px', 
+                  background: 'rgba(255, 255, 255, 0.6)', 
+                  borderRadius: '20px', 
+                  overflow: 'hidden', 
+                  border: '1px solid rgba(255, 255, 255, 0.8)',
+                  boxShadow: '0 8px 20px rgba(0,0,0,0.04)',
+                  transition: 'transform 0.3s'
+                }}
+                onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-6px)'}
+                onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                >
+                  <img src={rec.image} alt={rec.title} style={{ width: '100%', height: '160px', objectFit: 'cover' }} />
+                  <div className="recommendation-content" style={{ padding: '20px' }}>
+                    <h4 style={{ margin: '0 0 4px 0', fontSize: '18px', fontWeight: '700', color: 'var(--text-main)' }}>{rec.title}</h4>
+                    <p className="location" style={{ margin: '0 0 12px 0', fontSize: '13px', color: '#10b981', fontWeight: '600' }}>{rec.location}</p>
+                    <p className="desc" style={{ margin: 0, fontSize: '14px', color: 'var(--text-muted)', lineHeight: '1.5' }}>{rec.description}</p>
                   </div>
                 </div>
               ))}
