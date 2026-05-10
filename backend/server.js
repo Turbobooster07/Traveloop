@@ -159,6 +159,80 @@ app.post('/api/trips', async (req, res) => {
   }
 });
 
+// Create itinerary sections for a trip
+app.post('/api/itinerary', async (req, res) => {
+  const { trip_id, user_id, sections } = req.body;
+
+  if (!user_id || !sections || sections.length === 0) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  try {
+    // Ensure itinerary_sections table exists
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS itinerary_sections (
+        id SERIAL PRIMARY KEY,
+        trip_id INTEGER REFERENCES trips(id) ON DELETE CASCADE,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        title VARCHAR(255),
+        description TEXT,
+        from_date DATE,
+        to_date DATE,
+        budget NUMERIC(12,2),
+        section_order INTEGER,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Delete old sections for this trip if re-saving
+    if (trip_id) {
+      await pool.query('DELETE FROM itinerary_sections WHERE trip_id = $1', [trip_id]);
+    }
+
+    const inserted = [];
+    for (let i = 0; i < sections.length; i++) {
+      const s = sections[i];
+      const result = await pool.query(
+        `INSERT INTO itinerary_sections (trip_id, user_id, title, description, from_date, to_date, budget, section_order)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+         RETURNING *`,
+        [
+          trip_id || null,
+          user_id,
+          s.title || `Section ${i + 1}`,
+          s.description || null,
+          s.from_date || null,
+          s.to_date || null,
+          s.budget ? parseFloat(s.budget) : null,
+          i + 1
+        ]
+      );
+      inserted.push(result.rows[0]);
+    }
+
+    res.status(201).json({ message: 'Itinerary saved successfully', sections: inserted });
+  } catch (error) {
+    console.error('Itinerary save error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get itinerary sections for a trip
+app.get('/api/itinerary/:tripId', async (req, res) => {
+  try {
+    const { tripId } = req.params;
+    const result = await pool.query(
+      `SELECT * FROM itinerary_sections WHERE trip_id = $1 ORDER BY section_order ASC`,
+      [tripId]
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Get itinerary error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
 // Get user trips
 app.get('/api/trips/:userId', async (req, res) => {
   try {

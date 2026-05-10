@@ -3,6 +3,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import PlanTrip from './pages/PlanTrip';
+import BuildItinerary from './pages/BuildItinerary';
 import './index.css';
 
 function App() {
@@ -13,6 +14,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/plan-trip" element={<PlanTrip />} />
+        <Route path="/build-itinerary" element={<BuildItinerary />} />
       </Routes>
     </Router>
   );

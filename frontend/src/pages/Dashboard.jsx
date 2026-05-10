@@ -189,7 +189,6 @@ const Dashboard = () => {
                       border: '1px solid rgba(255, 255, 255, 0.8)',
                       boxShadow: '0 4px 15px rgba(0,0,0,0.03)',
                       transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-                      cursor: 'pointer'
                     }}
                     onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 12px 25px rgba(0,0,0,0.08)'; e.currentTarget.style.background = 'rgba(255, 255, 255, 0.8)'; }}
                     onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.03)'; e.currentTarget.style.background = 'rgba(255, 255, 255, 0.6)'; }}
@@ -198,7 +197,28 @@ const Dashboard = () => {
                       <p style={{ margin: '0 0 16px 0', fontSize: '14px', color: 'var(--text-muted)' }}>
                         {new Date(trip.start_date).toLocaleDateString()} - {new Date(trip.end_date).toLocaleDateString()}
                       </p>
-                      <span style={{ fontSize: '13px', background: 'var(--accent-green-bg)', color: 'var(--accent-green-text)', padding: '6px 14px', borderRadius: '100px', fontWeight: '600' }}>{trip.status || 'Planned'}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: '13px', background: 'var(--accent-green-bg)', color: 'var(--accent-green-text)', padding: '6px 14px', borderRadius: '100px', fontWeight: '600' }}>{trip.status || 'Planned'}</span>
+                        <button
+                          onClick={() => navigate('/build-itinerary', { state: { user, trip } })}
+                          style={{
+                            fontSize: '13px',
+                            background: 'var(--cta-gradient)',
+                            color: '#fff',
+                            padding: '6px 16px',
+                            borderRadius: '100px',
+                            fontWeight: '600',
+                            border: 'none',
+                            cursor: 'pointer',
+                            boxShadow: 'var(--cta-shadow)',
+                            transition: 'opacity 0.2s'
+                          }}
+                          onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
+                          onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                        >
+                          📋 Build Itinerary
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
