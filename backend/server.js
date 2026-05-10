@@ -43,8 +43,6 @@ pool.connect((err, client, release) => {
   release();
 });
 
-
-
 // Routes
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Backend is running' });
@@ -55,24 +53,17 @@ app.post('/api/register', async (req, res) => {
   const { firstName, lastName, email, phone, city, country, additionalInfo } = req.body;
   
   try {
-    // Generate username (e.g. "john4512")
     const randomNum = crypto.randomInt(1000, 9999);
     const username = `${firstName.toLowerCase()}${randomNum}`;
-    
-    // Generate a smaller random password (3 chars hex = 6 characters)
     const plainPassword = crypto.randomBytes(3).toString('hex');
-    
-    // Hash password
     const saltRounds = 10;
     const passwordHash = await bcrypt.hash(plainPassword, saltRounds);
 
-    // Save to database
     const result = await pool.query(
       userQueries.registerUser,
       [username, passwordHash, firstName, lastName, email, phone, city, country, additionalInfo, null]
     );
     
-    // Return the plain-text credentials so the frontend can display them to the user
     res.status(201).json({ 
       message: 'User registered successfully!',
       credentials: {
@@ -101,9 +92,7 @@ app.post('/api/login', async (req, res) => {
     const match = await bcrypt.compare(password, user.password_hash);
     
     if (match) {
-      // Remove password hash before sending user data
       delete user.password_hash;
-      
       res.json({ 
         message: 'Login successful',
         user: user 
@@ -178,7 +167,6 @@ app.post('/api/itinerary', async (req, res) => {
   }
 
   try {
-    // Ensure itinerary_sections table exists
     await pool.query(`
       CREATE TABLE IF NOT EXISTS itinerary_sections (
         id SERIAL PRIMARY KEY,
@@ -194,7 +182,6 @@ app.post('/api/itinerary', async (req, res) => {
       )
     `);
 
-    // Ensure itinerary_cities table exists
     await pool.query(`
       CREATE TABLE IF NOT EXISTS itinerary_cities (
         id SERIAL PRIMARY KEY,
@@ -205,7 +192,6 @@ app.post('/api/itinerary', async (req, res) => {
       )
     `);
 
-    // Ensure itinerary_stops table exists
     await pool.query(`
       CREATE TABLE IF NOT EXISTS itinerary_stops (
         id SERIAL PRIMARY KEY,
@@ -222,11 +208,9 @@ app.post('/api/itinerary', async (req, res) => {
       )
     `);
 
-    // Add check_in / check_out columns if missing (for existing tables)
     try { await pool.query(`ALTER TABLE itinerary_stops ADD COLUMN IF NOT EXISTS check_in TIME`); } catch (e) {}
     try { await pool.query(`ALTER TABLE itinerary_stops ADD COLUMN IF NOT EXISTS check_out TIME`); } catch (e) {}
 
-    // Delete old sections for this trip if re-saving (cascades to cities and stops)
     if (trip_id) {
       await pool.query('DELETE FROM itinerary_sections WHERE trip_id = $1', [trip_id]);
     }
@@ -251,7 +235,6 @@ app.post('/api/itinerary', async (req, res) => {
       );
       const sectionRow = result.rows[0];
 
-      // Insert cities for this section
       const cities = s.cities || [];
       const insertedCities = [];
       for (let j = 0; j < cities.length; j++) {
@@ -265,7 +248,6 @@ app.post('/api/itinerary', async (req, res) => {
         );
         const cityRow = cityResult.rows[0];
 
-        // Insert stops for this city
         const stops = city.stops || [];
         const insertedStops = [];
         for (let k = 0; k < stops.length; k++) {
@@ -303,7 +285,7 @@ app.post('/api/itinerary', async (req, res) => {
   }
 });
 
-// Get itinerary sections for a trip (with cities and stops)
+// Get itinerary sections for a trip
 app.get('/api/itinerary/:tripId', async (req, res) => {
   try {
     const { tripId } = req.params;
@@ -327,10 +309,8 @@ app.get('/api/itinerary/:tripId', async (req, res) => {
         );
         city.stops = stopResult.rows;
       }
-
       section.cities = cities;
     }
-
     res.json(sections);
   } catch (error) {
     console.error('Get itinerary error:', error);
@@ -338,17 +318,12 @@ app.get('/api/itinerary/:tripId', async (req, res) => {
   }
 });
 
-
 // Create/Update Day Plans for a trip
 app.post('/api/day-plans', async (req, res) => {
   const { trip_id, user_id, days } = req.body;
-
-  if (!user_id || !days) {
-    return res.status(400).json({ error: 'Missing required fields' });
-  }
+  if (!user_id || !days) return res.status(400).json({ error: 'Missing required fields' });
 
   try {
-    // Ensure day_plans table exists
     await pool.query(`
       CREATE TABLE IF NOT EXISTS day_plans (
         id SERIAL PRIMARY KEY,
@@ -359,7 +334,6 @@ app.post('/api/day-plans', async (req, res) => {
       )
     `);
 
-    // Ensure day_plan_activities table exists
     await pool.query(`
       CREATE TABLE IF NOT EXISTS day_plan_activities (
         id SERIAL PRIMARY KEY,
@@ -370,7 +344,6 @@ app.post('/api/day-plans', async (req, res) => {
       )
     `);
 
-    // Delete old day plans for this trip if re-saving (cascades to activities)
     if (trip_id) {
       await pool.query('DELETE FROM day_plans WHERE trip_id = $1', [trip_id]);
     }
@@ -379,24 +352,18 @@ app.post('/api/day-plans', async (req, res) => {
     for (let i = 0; i < days.length; i++) {
       const d = days[i];
       const result = await pool.query(
-        `INSERT INTO day_plans (trip_id, user_id, day_number)
-         VALUES ($1, $2, $3)
-         RETURNING *`,
+        `INSERT INTO day_plans (trip_id, user_id, day_number) VALUES ($1, $2, $3) RETURNING *`,
         [trip_id || null, user_id, d.dayNumber]
       );
       const dayRow = result.rows[0];
 
-      // Insert activities for this day
       const activities = d.activities || [];
       const insertedActivities = [];
       for (let j = 0; j < activities.length; j++) {
         const act = activities[j];
         if (!act.text && !act.expense) continue;
-        
         const actResult = await pool.query(
-          `INSERT INTO day_plan_activities (day_plan_id, activity_text, expense, activity_order)
-           VALUES ($1, $2, $3, $4)
-           RETURNING *`,
+          `INSERT INTO day_plan_activities (day_plan_id, activity_text, expense, activity_order) VALUES ($1, $2, $3, $4) RETURNING *`,
           [dayRow.id, act.text || '', act.expense ? parseFloat(act.expense) : null, j + 1]
         );
         insertedActivities.push(actResult.rows[0]);
@@ -404,7 +371,6 @@ app.post('/api/day-plans', async (req, res) => {
       dayRow.activities = insertedActivities;
       insertedDays.push(dayRow);
     }
-
     res.status(201).json({ message: 'Day plan saved successfully', days: insertedDays });
   } catch (error) {
     console.error('Day plan save error:', error);
@@ -416,27 +382,17 @@ app.post('/api/day-plans', async (req, res) => {
 app.get('/api/day-plans/:tripId', async (req, res) => {
   try {
     const { tripId } = req.params;
-    const dayResult = await pool.query(
-      `SELECT * FROM day_plans WHERE trip_id = $1 ORDER BY day_number ASC`,
-      [tripId]
-    );
+    const dayResult = await pool.query(`SELECT * FROM day_plans WHERE trip_id = $1 ORDER BY day_number ASC`, [tripId]);
     const days = dayResult.rows;
-
     for (const day of days) {
-      const actResult = await pool.query(
-        `SELECT * FROM day_plan_activities WHERE day_plan_id = $1 ORDER BY activity_order ASC`,
-        [day.id]
-      );
+      const actResult = await pool.query(`SELECT * FROM day_plan_activities WHERE day_plan_id = $1 ORDER BY activity_order ASC`, [day.id]);
       day.activities = actResult.rows;
     }
-
     res.json(days);
   } catch (error) {
-    // If table doesn't exist yet, just return empty array
     res.json([]);
   }
 });
-
 
 // Get user trips
 app.get('/api/trips/:userId', async (req, res) => {
@@ -455,11 +411,7 @@ app.get('/api/users/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
     const result = await pool.query(userQueries.getUserById, [userId]);
-    
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    
+    if (result.rows.length === 0) return res.status(404).json({ error: 'User not found' });
     res.json(result.rows[0]);
   } catch (error) {
     console.error('Get user error:', error);
@@ -472,15 +424,10 @@ app.put('/api/users/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
     const { first_name, last_name, email, phone, city, country, additional_info, profile_pic } = req.body;
-    
     const result = await pool.query(userQueries.updateUserProfile, [
       first_name, last_name, email, phone, city, country, additional_info, profile_pic, userId
     ]);
-    
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    
+    if (result.rows.length === 0) return res.status(404).json({ error: 'User not found' });
     res.json({ message: 'Profile updated successfully', user: result.rows[0] });
   } catch (error) {
     console.error('Update user error:', error);
@@ -488,84 +435,73 @@ app.put('/api/users/:userId', async (req, res) => {
   }
 });
 
-// Delete user account
-app.delete('/api/users/:userId', async (req, res) => {
+// Packing Checklist Endpoints
+app.get('/api/packing/:tripId', async (req, res) => {
   try {
-    const { userId } = req.params;
-    await pool.query(userQueries.deleteUser, [userId]);
-    res.json({ message: 'Account deleted successfully' });
+    const { tripId } = req.params;
+    const result = await pool.query('SELECT * FROM packing_items WHERE trip_id = $1 ORDER BY id ASC', [tripId]);
+    res.json(result.rows);
   } catch (error) {
-    console.error('Delete user error:', error);
+    console.error('Get packing items error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// Get recommendations (Mock data for now)
+app.post('/api/packing/:tripId', async (req, res) => {
+  try {
+    const { tripId } = req.params;
+    const { items } = req.body;
+    if (!items || !Array.isArray(items)) return res.status(400).json({ error: 'Items array is required' });
+    const inserted = [];
+    for (const item of items) {
+      const result = await pool.query(
+        'INSERT INTO packing_items (trip_id, item_name, category) VALUES ($1, $2, $3) RETURNING *',
+        [tripId, item.item_name, item.category]
+      );
+      inserted.push(result.rows[0]);
+    }
+    res.status(201).json(inserted);
+  } catch (error) {
+    console.error('Create packing items error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.patch('/api/packing/item/:itemId', async (req, res) => {
+  try {
+    const { itemId } = req.params;
+    const { is_packed } = req.body;
+    const result = await pool.query('UPDATE packing_items SET is_packed = $1 WHERE id = $2 RETURNING *', [is_packed, itemId]);
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Update packing item error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.delete('/api/packing/item/:itemId', async (req, res) => {
+  try {
+    const { itemId } = req.params;
+    await pool.query('DELETE FROM packing_items WHERE id = $1', [itemId]);
+    res.json({ message: 'Item deleted' });
+  } catch (error) {
+    console.error('Delete packing item error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get recommendations (Mock data)
 app.get('/api/recommendations', (req, res) => {
   const recommendations = [
-    {
-      id: 1,
-      title: 'Snorkeling in Bali',
-      location: 'Bali, Indonesia',
-      description: 'Explore the vibrant coral reefs and marine life.',
-      image: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&q=80&w=600&h=400'
-    },
-    {
-      id: 2,
-      title: 'Eiffel Tower Tour',
-      location: 'Paris, France',
-      description: 'Skip the line and enjoy breathtaking views of Paris.',
-      image: 'https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?auto=format&fit=crop&q=80&w=600&h=400'
-    },
-    {
-      id: 3,
-      title: 'Grand Canyon Helicopter',
-      location: 'Arizona, USA',
-      description: 'Experience the majesty of the canyon from the air.',
-      image: 'https://images.unsplash.com/photo-1615551043360-33de8b5f410c?auto=format&fit=crop&q=80&w=600&h=400'
-    },
-    {
-      id: 4,
-      title: 'Kyoto Temple Walk',
-      location: 'Kyoto, Japan',
-      description: 'Discover the serene beauty of ancient temples.',
-      image: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&q=80&w=600&h=400'
-    },
-    {
-      id: 5,
-      title: 'Santorini Sunset Cruise',
-      location: 'Santorini, Greece',
-      description: 'Sail across the caldera and watch the famous sunset.',
-      image: 'https://images.unsplash.com/photo-1613395877344-13d4a8e0d49e?auto=format&fit=crop&q=80&w=600&h=400'
-    },
-    {
-      id: 6,
-      title: 'Machu Picchu Trek',
-      location: 'Cusco, Peru',
-      description: 'Hike the historic Inca trail to the lost city.',
-      image: 'https://images.unsplash.com/photo-1587595431973-160d0d94add1?auto=format&fit=crop&q=80&w=600&h=400'
-    },
-    {
-      id: 7,
-      title: 'Northern Lights Safari',
-      location: 'Tromso, Norway',
-      description: 'Chase the aurora borealis in the Arctic circle.',
-      image: 'https://images.unsplash.com/photo-1579033461380-adb47c3eb938?auto=format&fit=crop&q=80&w=600&h=400'
-    },
-    {
-      id: 8,
-      title: 'Great Barrier Reef Dive',
-      location: 'Queensland, Australia',
-      description: 'Scuba dive in the worlds largest coral reef system.',
-      image: 'https://images.unsplash.com/photo-1582967788606-a171c1080cb0?auto=format&fit=crop&q=80&w=600&h=400'
-    },
-    {
-      id: 9,
-      title: 'Banff National Park',
-      location: 'Alberta, Canada',
-      description: 'Explore the stunning turquoise lakes and mountains.',
-      image: 'https://images.unsplash.com/photo-1561134643-66c98f98126d?auto=format&fit=crop&q=80&w=600&h=400'
-    }
+    { id: 1, title: 'Snorkeling in Bali', location: 'Bali, Indonesia', description: 'Explore coral reefs.', image: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&q=80&w=600&h=400' },
+    { id: 2, title: 'Eiffel Tower Tour', location: 'Paris, France', description: 'Breathtaking views.', image: 'https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?auto=format&fit=crop&q=80&w=600&h=400' },
+    { id: 3, title: 'Grand Canyon Helicopter', location: 'Arizona, USA', description: 'Majesty from air.', image: 'https://images.unsplash.com/photo-1615551043360-33de8b5f410c?auto=format&fit=crop&q=80&w=600&h=400' },
+    { id: 4, title: 'Kyoto Temple Walk', location: 'Kyoto, Japan', description: 'Serene ancient temples.', image: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&q=80&w=600&h=400' },
+    { id: 5, title: 'Santorini Sunset Cruise', location: 'Santorini, Greece', description: 'Famous sunset.', image: 'https://images.unsplash.com/photo-1613395877344-13d4a8e0d49e?auto=format&fit=crop&q=80&w=600&h=400' },
+    { id: 6, title: 'Machu Picchu Trek', location: 'Cusco, Peru', description: 'Historic Inca trail.', image: 'https://images.unsplash.com/photo-1587595431973-160d0d94add1?auto=format&fit=crop&q=80&w=600&h=400' },
+    { id: 7, title: 'Northern Lights Safari', location: 'Tromso, Norway', description: 'Aurora borealis.', image: 'https://images.unsplash.com/photo-1579033461380-adb47c3eb938?auto=format&fit=crop&q=80&w=600&h=400' },
+    { id: 8, title: 'Great Barrier Reef Dive', location: 'Queensland, Australia', description: 'Worlds largest reef.', image: 'https://images.unsplash.com/photo-1582967788606-a171c1080cb0?auto=format&fit=crop&q=80&w=600&h=400' },
+    { id: 9, title: 'Banff National Park', location: 'Alberta, Canada', description: 'Turquoise lakes.', image: 'https://images.unsplash.com/photo-1561134643-66c98f98126d?auto=format&fit=crop&q=80&w=600&h=400' }
   ];
   res.json(recommendations);
 });

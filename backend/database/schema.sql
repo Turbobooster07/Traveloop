@@ -47,3 +47,15 @@ CREATE INDEX IF NOT EXISTS idx_trips_user_id ON trips(user_id);
 DROP TRIGGER IF EXISTS update_trip_modtime ON trips;
 CREATE TRIGGER update_trip_modtime BEFORE
 UPDATE ON trips FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Packing Items Table
+CREATE TABLE IF NOT EXISTS packing_items (
+    id SERIAL PRIMARY KEY,
+    trip_id INTEGER REFERENCES trips(id) ON DELETE CASCADE,
+    item_name VARCHAR(255) NOT NULL,
+    category VARCHAR(50) NOT NULL,
+    is_packed BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_packing_trip_id ON packing_items(trip_id);

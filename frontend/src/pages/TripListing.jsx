@@ -152,7 +152,6 @@ const TripListing = () => {
 
         {/* Search Bar */}
         <div style={{ flex: 1, maxWidth: '420px', margin: '0 32px', position: 'relative' }}>
-          <span style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', fontSize: '16px', color: 'var(--text-muted)' }}>🔍</span>
           <input
             type="text"
             value={search}
@@ -160,7 +159,7 @@ const TripListing = () => {
             placeholder="Search trips..."
             style={{
               width: '100%',
-              padding: '12px 16px 12px 44px',
+              padding: '12px 16px',
               background: 'var(--input-bg)',
               border: '1px solid var(--input-border)',
               borderRadius: '14px',
@@ -319,7 +318,7 @@ const TripListing = () => {
                             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
                               <div>
                                 <h3 style={{ margin: '0 0 6px 0', fontSize: '20px', fontWeight: '800', fontFamily: "'Outfit', sans-serif", color: 'var(--text-main)' }}>
-                                  ✈️ {trip.destination}
+                                  {trip.destination}
                                 </h3>
                                 <p style={{ margin: '0 0 12px 0', fontSize: '14px', color: 'var(--text-muted)' }}>
                                   {startDate} → {endDate} · {totalDays} day{totalDays !== 1 ? 's' : ''}
@@ -341,17 +340,22 @@ const TripListing = () => {
                             <button
                               onClick={e => { e.stopPropagation(); navigate('/build-itinerary', { state: { user, trip } }); }}
                               style={{ padding: '8px 18px', background: 'var(--cta-gradient)', color: '#fff', border: 'none', borderRadius: '12px', fontSize: '13px', fontWeight: '700', cursor: 'pointer', fontFamily: 'inherit', boxShadow: 'var(--cta-shadow)', whiteSpace: 'nowrap' }}>
-                              📋 Itinerary
+                              Itinerary
                             </button>
                             <button
                               onClick={e => { e.stopPropagation(); navigate('/day-itinerary', { state: { user, trip } }); }}
                               style={{ padding: '8px 18px', background: 'var(--accent-purple-bg)', color: 'var(--accent-purple-text)', border: 'none', borderRadius: '12px', fontSize: '13px', fontWeight: '700', cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
-                              📅 Day Plan
+                              Day Plan
+                            </button>
+                            <button
+                              onClick={e => { e.stopPropagation(); navigate('/packing-list', { state: { user, trip } }); }}
+                              style={{ padding: '8px 18px', background: 'var(--icy-blue, #bde0fe)', color: '#1a5fa8', border: 'none', borderRadius: '12px', fontSize: '13px', fontWeight: '700', cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
+                              Packing
                             </button>
                             <button
                               onClick={e => { e.stopPropagation(); navigate('/plan-trip', { state: { user } }); }}
                               style={{ padding: '8px 18px', background: 'var(--card-bg)', color: 'var(--text-muted)', border: '1px solid var(--border-medium)', borderRadius: '12px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
-                              ✏️ Edit
+                              Edit
                             </button>
                           </div>
                         </div>
@@ -372,7 +376,6 @@ const TripListing = () => {
               padding: '80px 40px',
               textAlign: 'center'
             }}>
-              <p style={{ fontSize: '48px', margin: '0 0 16px 0' }}>🌍</p>
               <h3 style={{ margin: '0 0 8px 0', color: 'var(--text-main)', fontFamily: "'Outfit', sans-serif", fontSize: '22px' }}>
                 {search ? 'No trips match your search' : 'No trips yet'}
               </h3>

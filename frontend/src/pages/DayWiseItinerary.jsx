@@ -247,7 +247,7 @@ const DayWiseItinerary = () => {
                     {/* Arrow between activities (if not the last one) */}
                     {index < day.activities.length - 1 && (
                       <div style={{ display: 'flex', justifyContent: 'flex-start', paddingLeft: '40%' }}>
-                        <span style={{ color: 'var(--border-medium)', fontSize: '24px', lineHeight: '1' }}>↓</span>
+                        <span style={{ color: 'var(--border-medium)', fontSize: '24px', lineHeight: '1' }}>|</span>
                       </div>
                     )}
                   </React.Fragment>
@@ -272,7 +272,7 @@ const DayWiseItinerary = () => {
                   onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-main)'; e.currentTarget.style.borderColor = 'var(--input-focus)'; }}
                   onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'var(--border-medium)'; }}
                 >
-                  + Add Activity
+                  Add Activity
                 </button>
               </div>
             </div>
@@ -308,7 +308,6 @@ const DayWiseItinerary = () => {
               e.currentTarget.style.color = 'var(--text-muted)';
             }}
           >
-            <span style={{ fontSize: '22px' }}>＋</span>
             Add another Day
           </button>
           
@@ -344,7 +343,7 @@ const DayWiseItinerary = () => {
                 opacity: saving || saved ? 0.8 : 1
               }}
             >
-              {saved ? '✅ Saved! Redirecting...' : saving ? 'Saving...' : 'Save Day Plan'}
+              {saved ? 'Saved! Redirecting...' : saving ? 'Saving...' : 'Save Day Plan'}
             </button>
           </div>
         </div>

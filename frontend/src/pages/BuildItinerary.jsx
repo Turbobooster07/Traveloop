@@ -276,7 +276,7 @@ const BuildItinerary = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           {trip && (
             <span style={{ fontSize: '15px', color: 'var(--text-muted)', fontWeight: '600', background: 'var(--card-bg-lavender)', padding: '6px 14px', borderRadius: '100px' }}>
-              ✈️ {trip.destination}
+              {trip.destination}
             </span>
           )}
           <button onClick={() => navigate('/dashboard', { state: { user } })}
@@ -368,7 +368,7 @@ const BuildItinerary = () => {
               {/* Cities & Stops */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-main)', fontFamily: "'Outfit', sans-serif" }}>🏙️ Cities & Stops</span>
+                  <span style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-main)', fontFamily: "'Outfit', sans-serif" }}>Cities & Stops</span>
                   <div style={{ flex: 1, height: '1px', background: 'var(--border-light)' }} />
                 </div>
 
@@ -475,7 +475,7 @@ const BuildItinerary = () => {
                       <button onClick={() => addStop(section.id, city.id)} style={addSubtleBtnStyle}
                         onMouseEnter={e => { e.currentTarget.style.background = 'rgba(162, 210, 255, 0.15)'; e.currentTarget.style.color = 'var(--text-main)'; }}
                         onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}>
-                        <span style={{ fontSize: '18px' }}>＋</span> Add Stop
+                        Add Stop
                       </button>
                     </div>
                   );
@@ -484,7 +484,7 @@ const BuildItinerary = () => {
                 <button onClick={() => addCity(section.id)} style={addSubtleBtnStyle}
                   onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255, 175, 204, 0.12)'; e.currentTarget.style.borderColor = 'var(--baby-pink, #ffafcc)'; e.currentTarget.style.color = 'var(--text-main)'; }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'var(--border-light)'; e.currentTarget.style.color = 'var(--text-muted)'; }}>
-                  <span style={{ fontSize: '18px' }}>＋</span> Add City
+                  Add City
                 </button>
               </div>
             </div>
@@ -494,7 +494,7 @@ const BuildItinerary = () => {
             style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', width: '100%', maxWidth: '860px', padding: '20px', background: 'var(--card-bg)', border: '2px dashed var(--border-medium)', borderRadius: '24px', cursor: 'pointer', fontSize: '17px', fontWeight: '700', color: 'var(--text-muted)', fontFamily: "'Outfit', sans-serif", transition: 'all 0.3s' }}
             onMouseEnter={e => { e.currentTarget.style.background = 'var(--accent-purple-bg)'; e.currentTarget.style.borderColor = 'var(--accent-purple)'; e.currentTarget.style.color = 'var(--accent-purple-text)'; }}
             onMouseLeave={e => { e.currentTarget.style.background = 'var(--card-bg)'; e.currentTarget.style.borderColor = 'var(--border-medium)'; e.currentTarget.style.color = 'var(--text-muted)'; }}>
-            <span style={{ fontSize: '22px' }}>＋</span> Add another Section
+            Add another Section
           </button>
 
           <div style={{ display: 'flex', gap: '16px', maxWidth: '860px' }}>
@@ -506,7 +506,7 @@ const BuildItinerary = () => {
             </button>
             <button onClick={handleSave} disabled={saving || saved} className="login-btn"
               style={{ flex: 2, padding: '16px', fontSize: '17px', borderRadius: '16px', boxShadow: 'var(--cta-shadow)', opacity: saving || saved ? 0.8 : 1, cursor: saving || saved ? 'default' : 'pointer' }}>
-              {saved ? '✅ Saved! Redirecting...' : saving ? 'Saving...' : 'Save Itinerary'}
+              {saved ? 'Saved! Redirecting...' : saving ? 'Saving...' : 'Save Itinerary'}
             </button>
           </div>
         </div>
