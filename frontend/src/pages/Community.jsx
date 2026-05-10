@@ -372,7 +372,7 @@ const Community = () => {
                   <div className="post-body">
                     <p style={{ color: '#111827' }}>{post.content}</p>
                     {post.tags && (
-                      <div className="post-tags">
+                      <div className="post-tags" style={{ marginTop: '15px' }}>
                         {post.tags.split(',').map((tag, i) => (
                           <span
                             key={i}

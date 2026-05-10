@@ -31,16 +31,32 @@ pool.connect((err, client, release) => {
     return console.error('Error acquiring client (Make sure PostgreSQL is running)', err.stack);
   }
   console.log('Connected to PostgreSQL successfully');
-  // Ensure profile_pic column exists
-  pool.query(`
-    DO $$ 
-    BEGIN 
-      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='profile_pic') THEN
-        ALTER TABLE users ADD COLUMN profile_pic TEXT;
-      END IF;
-    END $$;
-  `).catch(err => console.error('Schema update error:', err));
-  release();
+
+  // Ensure necessary columns exist for migrations
+  const migrations = [
+    { table: 'users', column: 'profile_pic', type: 'TEXT' },
+    { table: 'community_posts', column: 'image_url', type: 'TEXT' }
+  ];
+
+  const runMigrations = async () => {
+    for (const m of migrations) {
+      try {
+        await pool.query(`
+          DO $$ 
+          BEGIN 
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='${m.table}' AND column_name='${m.column}') THEN
+              ALTER TABLE ${m.table} ADD COLUMN ${m.column} ${m.type};
+            END IF;
+          END $$;
+        `);
+      } catch (err) {
+        console.error(`Migration error for ${m.table}.${m.column}:`, err);
+      }
+    }
+    release();
+  };
+
+  runMigrations();
 });
 
 // Routes
@@ -538,8 +554,8 @@ app.get('/api/community/posts', async (req, res) => {
 
 app.post('/api/community/posts', async (req, res) => {
   try {
-    const { user_id, content, tags } = req.body;
-    const result = await pool.query(communityQueries.createPost, [user_id, content, tags]);
+    const { user_id, content, tags, image_url } = req.body;
+    const result = await pool.query(communityQueries.createPost, [user_id, content, tags, image_url]);
     res.status(201).json(result.rows[0]);
   } catch (error) {
     console.error('Create post error:', error);
