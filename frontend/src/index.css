@@ -138,7 +138,7 @@ h1 {
     letter-spacing: 0.5px;
 }
 
-.input-group input {
+.input-group input, .input-group select {
     background: var(--input-bg);
     border: 1px solid var(--input-border);
     border-radius: 12px;
@@ -147,9 +147,10 @@ h1 {
     font-size: 15px;
     outline: none;
     transition: all 0.3s ease;
+    width: 100%;
 }
 
-.input-group input:focus {
+.input-group input:focus, .input-group select:focus {
     border-color: var(--input-focus);
     box-shadow: 0 0 0 3px rgba(247, 112, 98, 0.2);
 }
@@ -260,6 +261,7 @@ h1 {
 
 .form-row .input-group {
     flex: 1;
+    min-width: 0;
 }
 
 textarea {
@@ -299,4 +301,9 @@ textarea::placeholder {
 .center-text {
     text-align: center;
     margin-top: 0;
+}
+
+/* React root wrapper fix */
+#root {
+    display: contents;
 }

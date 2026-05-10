@@ -1,7 +1,19 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 
 const Login = () => {
+  const location = useLocation();
+  const credentials = location.state?.credentials;
+
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+
+  useEffect(() => {
+    if (credentials) {
+      setUsername(credentials.username);
+      setPassword(credentials.password);
+    }
+  }, [credentials]);
   return (
     <div className="login-container">
       <div className="login-card">
@@ -11,15 +23,50 @@ const Login = () => {
         <h1>Welcome Back</h1>
         <p className="subtitle">Enter your details to access your account.</p>
         
+        {credentials && (
+          <div style={{
+            background: 'rgba(16, 185, 129, 0.1)', 
+            border: '1px solid #10b981', 
+            padding: '12px', 
+            borderRadius: '8px', 
+            marginBottom: '20px', 
+            width: '100%', 
+            textAlign: 'center'
+          }}>
+            <p style={{ color: '#10b981', fontWeight: 'bold', marginBottom: '8px' }}>Registration Successful!</p>
+            <p style={{ fontSize: '13px', color: '#f8fafc' }}>
+              Your auto-generated credentials are:<br/>
+              <strong>ID:</strong> {credentials.username}<br/>
+              <strong>Password:</strong> {credentials.password}
+            </p>
+          </div>
+        )}
+
         <form action="#" method="POST" className="login-form">
           <div className="input-group">
             <label htmlFor="username">Username</label>
-            <input type="text" id="username" name="username" placeholder="Enter your username" required />
+            <input 
+              type="text" 
+              id="username" 
+              name="username" 
+              placeholder="Enter your username" 
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required 
+            />
           </div>
           
           <div className="input-group">
             <label htmlFor="password">Password</label>
-            <input type="password" id="password" name="password" placeholder="Enter your password" required />
+            <input 
+              type="password" 
+              id="password" 
+              name="password" 
+              placeholder="Enter your password" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required 
+            />
           </div>
           
           <div className="form-actions">

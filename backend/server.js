@@ -1,7 +1,11 @@
 const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
+const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 require('dotenv').config();
+
+const { userQueries } = require('./database/queries');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -33,19 +37,36 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Backend is running' });
 });
 
-// Example Registration Endpoint
+// Registration Endpoint
 app.post('/api/register', async (req, res) => {
   const { firstName, lastName, email, phone, city, country, additionalInfo } = req.body;
   
-  // Here we would typically hash the password and insert into DB
   try {
-    // Example query:
-    // const result = await pool.query(
-    //   'INSERT INTO users (first_name, last_name, email, phone, city, country, additional_info) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-    //   [firstName, lastName, email, phone, city, country, additionalInfo]
-    // );
+    // Generate username (e.g. "john4512")
+    const randomNum = crypto.randomInt(1000, 9999);
+    const username = `${firstName.toLowerCase()}${randomNum}`;
     
-    res.status(201).json({ message: 'User registered successfully!' });
+    // Generate a smaller random password (3 chars hex = 6 characters)
+    const plainPassword = crypto.randomBytes(3).toString('hex');
+    
+    // Hash password
+    const saltRounds = 10;
+    const passwordHash = await bcrypt.hash(plainPassword, saltRounds);
+
+    // Save to database
+    const result = await pool.query(
+      userQueries.registerUser,
+      [username, passwordHash, firstName, lastName, email, phone, city, country, additionalInfo]
+    );
+    
+    // Return the plain-text credentials so the frontend can display them to the user
+    res.status(201).json({ 
+      message: 'User registered successfully!',
+      credentials: {
+        username: username,
+        password: plainPassword
+      }
+    });
   } catch (error) {
     console.error('Error saving to DB:', error);
     res.status(500).json({ error: 'Internal server error' });
