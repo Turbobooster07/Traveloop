@@ -18,12 +18,14 @@ const EditProfile = () => {
     city: '',
     country: '',
     additional_info: '',
-    language: 'English'
+    language: 'English',
+    profile_pic: null
   });
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+  const fileInputRef = React.useRef(null);
 
   useEffect(() => {
     if (!user) {
@@ -47,7 +49,8 @@ const EditProfile = () => {
           city: data.city || '',
           country: data.country || '',
           additional_info: data.additional_info || '',
-          language: data.language || 'English'
+          language: data.language || 'English',
+          profile_pic: data.profile_pic || null
         });
       }
     } catch (err) {
@@ -60,6 +63,47 @@ const EditProfile = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          // Create canvas for compression
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 400;
+          const MAX_HEIGHT = 400;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Get compressed base64
+          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+          setFormData(prev => ({ ...prev, profile_pic: compressedBase64 }));
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSave = async (e) => {
@@ -168,10 +212,17 @@ const EditProfile = () => {
             <h3>Profile Information</h3>
             <div className="settings-avatar-upload">
               <div className="settings-avatar-preview">
-                <img src={`https://ui-avatars.com/api/?name=${user.first_name}+${user.last_name}&background=ffc8dd&color=96426b&size=200`} alt="Avatar" />
+                <img src={formData.profile_pic || `https://ui-avatars.com/api/?name=${user.first_name}+${user.last_name}&background=ffc8dd&color=96426b&size=200`} alt="Avatar" />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <button type="button" className="upload-btn">Change Photo</button>
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  onChange={handleFileChange} 
+                  accept="image/*" 
+                  style={{ display: 'none' }} 
+                />
+                <button type="button" className="upload-btn" onClick={() => fileInputRef.current.click()}>Change Photo</button>
                 <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>JPG, PNG or GIF. Max size 2MB.</p>
               </div>
             </div>

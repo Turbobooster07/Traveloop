@@ -7,24 +7,29 @@ const UserProfile = () => {
   
   // Try to get user from state, otherwise fallback to localStorage
   const [user, setUser] = useState(() => {
-    if (location.state?.user) return location.state.user;
     const savedUser = localStorage.getItem('user');
-    return savedUser ? JSON.parse(savedUser) : null;
+    return savedUser ? JSON.parse(savedUser) : (location.state?.user || null);
   });
 
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user?.id) {
+    // Re-check localStorage in case we came back from settings
+    const freshUser = localStorage.getItem('user');
+    if (freshUser) {
+      const parsed = JSON.parse(freshUser);
+      setUser(parsed);
+      fetchUserData(parsed.id);
+      fetchTrips(parsed.id);
+    } else if (user?.id) {
       fetchUserData(user.id);
       fetchTrips(user.id);
     } else {
-      // If no user is found at all, redirect to login
       navigate('/');
       setLoading(false);
     }
-  }, [user, navigate]);
+  }, [navigate]);
 
   const fetchUserData = async (userId) => {
     try {
@@ -118,7 +123,7 @@ const UserProfile = () => {
         {/* User Information Section */}
         <section className="profile-user-info">
           <div className="profile-image-wrapper">
-            <img src={`https://ui-avatars.com/api/?name=${user.first_name}+${user.last_name}&background=ffc8dd&color=96426b&size=200`} alt="User Profile" />
+            <img src={(user.profile_pic && user.profile_pic.length > 50) ? user.profile_pic : `https://ui-avatars.com/api/?name=${user.first_name}+${user.last_name}&background=ffc8dd&color=96426b&size=200`} alt="User Profile" />
           </div>
           <div className="profile-details-container">
             <h2>{user.first_name} {user.last_name}</h2>
