@@ -89,14 +89,14 @@ const tripQueries = {
 const communityQueries = {
   // Create a new community post
   createPost: `
-    INSERT INTO community_posts (user_id, content, tags)
-    VALUES ($1, $2, $3)
-    RETURNING id, content, tags, created_at
+    INSERT INTO community_posts (user_id, content, tags, image_url)
+    VALUES ($1, $2, $3, $4)
+    RETURNING id, content, tags, image_url, created_at
   `,
   
   // Get all community posts with user info
   getAllPosts: `
-    SELECT p.id, p.content, p.tags, p.created_at, u.first_name, u.last_name, u.profile_pic
+    SELECT p.id, p.content, p.tags, p.image_url, p.created_at, u.first_name, u.last_name, u.profile_pic
     FROM community_posts p
     JOIN users u ON p.user_id = u.id
     ORDER BY p.created_at DESC
