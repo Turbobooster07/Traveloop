@@ -573,3 +573,58 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
+// --- Trip Notes ---
+app.get('/api/notes/:tripId', async (req, res) => {
+  const { tripId } = req.params;
+  try {
+    const result = await pool.query(
+      'SELECT * FROM trip_notes WHERE trip_id = $1 ORDER BY day_number ASC, created_at DESC',
+      [tripId]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch notes' });
+  }
+});
+
+app.post('/api/notes', async (req, res) => {
+  const { trip_id, title, content, day_number, stop_name, note_date } = req.body;
+  try {
+    const result = await pool.query(
+      'INSERT INTO trip_notes (trip_id, title, content, day_number, stop_name, note_date) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+      [trip_id, title, content, day_number, stop_name, note_date]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to create note' });
+  }
+});
+
+app.put('/api/notes/:id', async (req, res) => {
+  const { id } = req.params;
+  const { title, content, day_number, stop_name, note_date } = req.body;
+  try {
+    const result = await pool.query(
+      'UPDATE trip_notes SET title = $1, content = $2, day_number = $3, stop_name = $4, note_date = $5, updated_at = CURRENT_TIMESTAMP WHERE id = $6 RETURNING *',
+      [title, content, day_number, stop_name, note_date, id]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to update note' });
+  }
+});
+
+app.delete('/api/notes/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    await pool.query('DELETE FROM trip_notes WHERE id = $1', [id]);
+    res.status(200).json({ message: 'Note deleted' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to delete note' });
+  }
+});
