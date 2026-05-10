@@ -16,8 +16,20 @@ const Community = () => {
   // New post state
   const [newPostContent, setNewPostContent] = useState('');
   const [newPostTags, setNewPostTags] = useState('');
+  const [newPostImage, setNewPostImage] = useState(null);
   const [posting, setPosting] = useState(false);
   const [showModal, setShowModal] = useState(false);
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setNewPostImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   useEffect(() => {
     if (!user) {
@@ -53,13 +65,15 @@ const Community = () => {
         body: JSON.stringify({
           user_id: user.id,
           content: newPostContent,
-          tags: newPostTags
+          tags: newPostTags,
+          image_url: newPostImage
         })
       });
 
       if (response.ok) {
         setNewPostContent('');
         setNewPostTags('');
+        setNewPostImage(null);
         setShowModal(false);
         fetchPosts(); // Refresh feed
       }
@@ -222,16 +236,63 @@ const Community = () => {
                     required
                   />
                   <div className="create-post-footer">
-                    <input 
-                      type="text" 
-                      placeholder="Tags (e.g. Bali, Beach)" 
-                      value={newPostTags}
-                      onChange={(e) => setNewPostTags(e.target.value)}
-                      className="create-post-tags-input"
-                    />
-                    <button type="submit" className="post-submit-btn" disabled={posting}>
-                      {posting ? 'Posting...' : 'Post Story'}
-                    </button>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
+                      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                        <input 
+                          type="text" 
+                          placeholder="Tags (e.g. Bali, Beach)" 
+                          value={newPostTags}
+                          onChange={(e) => setNewPostTags(e.target.value)}
+                          className="create-post-tags-input"
+                          style={{ flex: 1 }}
+                        />
+                        <label className="image-upload-label" style={{ 
+                          cursor: 'pointer', 
+                          padding: '10px', 
+                          background: 'var(--card-bg)', 
+                          border: '1px solid var(--border-medium)', 
+                          borderRadius: '12px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          color: 'var(--text-muted)'
+                        }}>
+                          📷 Add Image
+                          <input type="file" accept="image/*" onChange={handleImageChange} style={{ display: 'none' }} />
+                        </label>
+                      </div>
+                      
+                      {newPostImage && (
+                        <div className="image-preview-container" style={{ position: 'relative', width: 'fit-content' }}>
+                          <img src={newPostImage} alt="Preview" style={{ maxWidth: '100%', maxHeight: '150px', borderRadius: '12px', border: '1px solid var(--border-medium)' }} />
+                          <button 
+                            type="button" 
+                            onClick={() => setNewPostImage(null)}
+                            style={{ 
+                              position: 'absolute', 
+                              top: '-10px', 
+                              right: '-10px', 
+                              background: '#ff4d4d', 
+                              color: 'white', 
+                              border: 'none', 
+                              borderRadius: '50%', 
+                              width: '24px', 
+                              height: '24px', 
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}
+                          >
+                            &times;
+                          </button>
+                        </div>
+                      )}
+                      
+                      <button type="submit" className="post-submit-btn" disabled={posting} style={{ width: '100%', marginTop: '5px' }}>
+                        {posting ? 'Posting...' : 'Post Story'}
+                      </button>
+                    </div>
                   </div>
                 </form>
               </div>
@@ -253,8 +314,13 @@ const Community = () => {
                   </div>
                   <div className="post-body">
                     <p>{post.content}</p>
+                    {post.image_url && (
+                      <div className="post-image-wrapper" style={{ marginTop: '15px', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-medium)' }}>
+                        <img src={post.image_url} alt="Post content" style={{ width: '100%', height: 'auto', display: 'block', maxHeight: '400px', objectFit: 'cover' }} />
+                      </div>
+                    )}
                     {post.tags && (
-                      <div className="post-tags">
+                      <div className="post-tags" style={{ marginTop: '15px' }}>
                         {post.tags.split(',').map((tag, i) => (
                           <span key={i} className="tag-chip">#{tag.trim()}</span>
                         ))}

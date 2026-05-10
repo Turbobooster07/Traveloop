@@ -55,6 +55,7 @@ CREATE TABLE IF NOT EXISTS community_posts (
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
     content TEXT NOT NULL,
     tags VARCHAR(255),
+    image_url TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
