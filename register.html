@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traveloop | Register</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="login-container register-container-wrapper">
+
+        <!-- Photo above the border -->
+        <div class="logo-container logo-outside">
+            <img src="logo.png" alt="Traveloop Logo" class="logo">
+        </div>
+
+        <!-- Bordered form -->
+        <div class="login-card register-card">
+            <h1>Create Account</h1>
+            <p class="subtitle">Join Traveloop today.</p>
+
+            <form id="register-form" action="#" method="POST" class="login-form register-form-grid">
+
+                <div class="form-row">
+                    <div class="input-group">
+                        <label for="firstName">First Name</label>
+                        <input type="text" id="firstName" name="firstName" placeholder="First Name" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="lastName">Last Name</label>
+                        <input type="text" id="lastName" name="lastName" placeholder="Last Name" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="input-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" name="email" placeholder="Email Address" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone" name="phone" placeholder="Phone Number" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="input-group">
+                        <label for="city">City</label>
+                        <input type="text" id="city" name="city" placeholder="City" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="country">Country</label>
+                        <input type="text" id="country" name="country" placeholder="Country" required>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="additionalInfo">Additional Info</label>
+                    <textarea id="additionalInfo" name="additionalInfo"
+                        placeholder="Tell us more about your travel preferences..." rows="3"></textarea>
+                </div>
+
+            </form>
+        </div>
+
+        <div class="button-outside-container">
+            <button type="submit" form="register-form" class="login-btn register-btn">Register users</button>
+            <div class="signup-link center-text">
+                Already have an account? <a href="index.html">Log in</a>
+            </div>
+        </div>
+
+    </div>
+</body>
+
+</html>
