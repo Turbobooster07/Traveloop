@@ -112,7 +112,7 @@ const UserProfile = () => {
         </div>
         <div className="dash-actions" style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
           <Link to="/dashboard" className="dash-section-link" style={{ textDecoration: 'none' }}>Dashboard</Link>
-          <Link to="/plan-trip" className="dash-section-link" style={{ textDecoration: 'none' }}>Plan Trip</Link>
+          <Link to="/community" className="dash-section-link" style={{ textDecoration: 'none' }}>Community</Link>
           <div className="dash-profile" onClick={handleLogout} title="Logout">
             {getInitials(user.first_name, user.last_name)}
           </div>
