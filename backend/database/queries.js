@@ -50,12 +50,18 @@ const userQueries = {
     SET 
       first_name = COALESCE($1, first_name),
       last_name = COALESCE($2, last_name),
-      phone = COALESCE($3, phone),
-      city = COALESCE($4, city),
-      country = COALESCE($5, country),
-      additional_info = COALESCE($6, additional_info)
-    WHERE id = $7
-    RETURNING id, username, email, first_name, last_name
+      email = COALESCE($3, email),
+      phone = COALESCE($4, phone),
+      city = COALESCE($5, city),
+      country = COALESCE($6, country),
+      additional_info = COALESCE($7, additional_info)
+    WHERE id = $8
+    RETURNING id, username, email, first_name, last_name, phone, city, country, additional_info
+  `,
+
+  // Delete user account
+  deleteUser: `
+    DELETE FROM users WHERE id = $1
   `
 };
 

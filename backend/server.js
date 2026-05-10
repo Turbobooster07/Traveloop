@@ -457,6 +457,39 @@ app.get('/api/users/:userId', async (req, res) => {
   }
 });
 
+// Update user profile
+app.put('/api/users/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { first_name, last_name, email, phone, city, country, additional_info } = req.body;
+    
+    const result = await pool.query(userQueries.updateUserProfile, [
+      first_name, last_name, email, phone, city, country, additional_info, userId
+    ]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    res.json({ message: 'Profile updated successfully', user: result.rows[0] });
+  } catch (error) {
+    console.error('Update user error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Delete user account
+app.delete('/api/users/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    await pool.query(userQueries.deleteUser, [userId]);
+    res.json({ message: 'Account deleted successfully' });
+  } catch (error) {
+    console.error('Delete user error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Get recommendations (Mock data for now)
 app.get('/api/recommendations', (req, res) => {
   const recommendations = [

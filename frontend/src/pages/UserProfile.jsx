@@ -124,7 +124,7 @@ const UserProfile = () => {
             <h2>{user.first_name} {user.last_name}</h2>
             <p className="profile-email">{user.email}</p>
             <p className="profile-bio">{user.additional_info || 'Welcome to your travel profile! Start planning your next adventure.'}</p>
-            <button className="edit-profile-btn">Edit Profile</button>
+            <button className="edit-profile-btn" onClick={() => navigate('/settings')}>Edit Profile</button>
           </div>
         </section>
 
