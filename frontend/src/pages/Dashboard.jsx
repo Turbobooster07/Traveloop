@@ -74,8 +74,30 @@ const Dashboard = () => {
         <div className="dash-logo">
           <h1>Traveloop</h1>
         </div>
-        <div className="dash-actions" style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-          <button onClick={handleLogout} className="dash-btn-chip" style={{ background: 'transparent', border: '1px solid var(--border-medium)' }}>Logout</button>
+        <div className="dash-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <button
+            onClick={() => navigate('/my-trips', { state: { user } })}
+            style={{
+              padding: '10px 20px',
+              background: 'var(--card-bg)',
+              backdropFilter: 'blur(16px)',
+              border: '1px solid var(--border-medium)',
+              borderRadius: '14px',
+              fontSize: '14px',
+              fontWeight: '600',
+              color: 'var(--text-muted)',
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-main)'; e.currentTarget.style.background = 'rgba(255,255,255,0.6)'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = 'var(--card-bg)'; }}
+          >
+            🗺️ My Trips
+          </button>
+          <button onClick={handleLogout} className="dash-btn-chip" style={{ background: 'transparent', border: '1px solid var(--border-medium)' }}>
+            Logout
+          </button>
           <div className="dash-profile" onClick={() => navigate('/profile', { state: { user } })} title="View Profile">
             {getInitials(user.first_name, user.last_name)}
           </div>
@@ -98,7 +120,14 @@ const Dashboard = () => {
         <div className="dash-toolbar-wrapper">
           <div className="dash-toolbar">
             <div className="dash-search">
-              <input type="text" placeholder="Where do you want to go?" />
+              <input 
+                type="text" 
+                placeholder="Where do you want to go?" 
+                readOnly
+                onClick={() => navigate('/search', { state: { user } })}
+                onFocus={() => navigate('/search', { state: { user } })}
+                style={{ cursor: 'pointer' }}
+              />
             </div>
             <div className="dash-actions">
               <button className="dash-btn-chip">Dates</button>
@@ -169,28 +198,26 @@ const Dashboard = () => {
           <div className="dashboard-content">
             <div className="dashboard-card" style={{ 
               flex: 1,
-              background: 'rgba(255, 255, 255, 0.4)',
-              backdropFilter: 'blur(30px) saturate(150%)',
-              WebkitBackdropFilter: 'blur(30px) saturate(150%)',
-              border: '1px solid rgba(255, 255, 255, 0.6)',
-              borderRadius: '32px',
-              padding: '40px',
-              boxShadow: '0 20px 40px -10px rgba(0, 0, 0, 0.05), inset 0 2px 5px rgba(255, 255, 255, 0.8)'
+              background: '#ffffff',
+              border: '1px solid var(--border-card)',
+              borderRadius: '20px',
+              padding: '32px',
+              boxShadow: 'var(--shadow-card)'
              }}>
               <h3 style={{ fontSize: '24px', fontWeight: '700', fontFamily: "'Outfit', sans-serif", margin: '0 0 24px 0', color: 'var(--text-main)' }}>Upcoming Trips</h3>
               {trips.length > 0 ? (
                 <div className="trips-list" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   {trips.map(trip => (
                     <div key={trip.id} className="trip-item" style={{ 
-                      background: 'rgba(255, 255, 255, 0.6)', 
-                      padding: '24px', 
-                      borderRadius: '20px', 
-                      border: '1px solid rgba(255, 255, 255, 0.8)',
-                      boxShadow: '0 4px 15px rgba(0,0,0,0.03)',
-                      transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                      background: 'var(--accent-purple-bg, #ede9fe)', 
+                      padding: '20px', 
+                      borderRadius: '16px', 
+                      border: '1px solid var(--border-card)',
+                      boxShadow: 'none',
+                      transition: 'transform 0.25s ease, box-shadow 0.25s ease',
                     }}
-                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 12px 25px rgba(0,0,0,0.08)'; e.currentTarget.style.background = 'rgba(255, 255, 255, 0.8)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.03)'; e.currentTarget.style.background = 'rgba(255, 255, 255, 0.6)'; }}
+                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = 'var(--shadow-hover)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
                     >
                       <h4 style={{ margin: '0 0 8px 0', color: 'var(--text-main)', fontSize: '18px', fontWeight: '700' }}>{trip.destination}</h4>
                       <p style={{ margin: '0 0 16px 0', fontSize: '14px', color: 'var(--text-muted)' }}>
@@ -231,28 +258,26 @@ const Dashboard = () => {
           {/* Recommendations Section */}
           <div className="recommendations-section" style={{ 
               marginTop: '16px',
-              background: 'rgba(255, 255, 255, 0.3)',
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
-              border: '1px solid rgba(255, 255, 255, 0.5)',
-              borderRadius: '32px',
-              padding: '40px',
-              boxShadow: '0 10px 30px -5px rgba(0, 0, 0, 0.03)'
+              background: '#ffffff',
+              border: '1px solid var(--border-card)',
+              borderRadius: '20px',
+              padding: '32px',
+              boxShadow: 'var(--shadow-card)'
            }}>
             <h2 style={{ fontSize: '24px', fontWeight: '700', fontFamily: "'Outfit', sans-serif", margin: '0 0 24px 0', color: 'var(--text-main)' }}>Recommended For You</h2>
             <div className="recommendations-scroll" style={{ display: 'flex', gap: '24px', overflowX: 'auto', paddingBottom: '8px', scrollbarWidth: 'none' }}>
               {recommendations.map(rec => (
                 <div key={rec.id} className="recommendation-card" style={{ 
                   minWidth: '280px', 
-                  background: 'rgba(255, 255, 255, 0.6)', 
-                  borderRadius: '20px', 
+                  background: 'var(--card-bg-lavender)', 
+                  borderRadius: '16px', 
                   overflow: 'hidden', 
-                  border: '1px solid rgba(255, 255, 255, 0.8)',
-                  boxShadow: '0 8px 20px rgba(0,0,0,0.04)',
-                  transition: 'transform 0.3s'
+                  border: '1px solid var(--border-card)',
+                  boxShadow: 'var(--shadow-card)',
+                  transition: 'transform 0.25s, box-shadow 0.25s'
                 }}
-                onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-6px)'}
-                onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = 'var(--shadow-hover)'; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'var(--shadow-card)'; }}
                 >
                   <img src={rec.image} alt={rec.title} style={{ width: '100%', height: '160px', objectFit: 'cover' }} />
                   <div className="recommendation-content" style={{ padding: '20px' }}>

@@ -8,10 +8,10 @@ const PlanTrip = () => {
 
   const [recommendations, setRecommendations] = useState([]);
   const [tripForm, setTripForm] = useState({
-    destination: '',
+    destination: location.state?.initialDestination || '',
     start_date: '',
     end_date: '',
-    description: ''
+    description: location.state?.initialDescription || ''
   });
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestions, setSuggestions] = useState([]);

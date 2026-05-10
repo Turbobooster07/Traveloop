@@ -184,7 +184,39 @@ app.post('/api/itinerary', async (req, res) => {
       )
     `);
 
-    // Delete old sections for this trip if re-saving
+    // Ensure itinerary_cities table exists
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS itinerary_cities (
+        id SERIAL PRIMARY KEY,
+        section_id INTEGER REFERENCES itinerary_sections(id) ON DELETE CASCADE,
+        city_name VARCHAR(255) NOT NULL,
+        city_order INTEGER,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Ensure itinerary_stops table exists
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS itinerary_stops (
+        id SERIAL PRIMARY KEY,
+        city_id INTEGER REFERENCES itinerary_cities(id) ON DELETE CASCADE,
+        stop_name VARCHAR(255) NOT NULL,
+        stop_type VARCHAR(50),
+        description TEXT,
+        timing VARCHAR(100),
+        check_in TIME,
+        check_out TIME,
+        budget NUMERIC(12,2),
+        stop_order INTEGER,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Add check_in / check_out columns if missing (for existing tables)
+    try { await pool.query(`ALTER TABLE itinerary_stops ADD COLUMN IF NOT EXISTS check_in TIME`); } catch (e) {}
+    try { await pool.query(`ALTER TABLE itinerary_stops ADD COLUMN IF NOT EXISTS check_out TIME`); } catch (e) {}
+
+    // Delete old sections for this trip if re-saving (cascades to cities and stops)
     if (trip_id) {
       await pool.query('DELETE FROM itinerary_sections WHERE trip_id = $1', [trip_id]);
     }
@@ -207,7 +239,51 @@ app.post('/api/itinerary', async (req, res) => {
           i + 1
         ]
       );
-      inserted.push(result.rows[0]);
+      const sectionRow = result.rows[0];
+
+      // Insert cities for this section
+      const cities = s.cities || [];
+      const insertedCities = [];
+      for (let j = 0; j < cities.length; j++) {
+        const city = cities[j];
+        if (!city.city_name) continue;
+        const cityResult = await pool.query(
+          `INSERT INTO itinerary_cities (section_id, city_name, city_order)
+           VALUES ($1, $2, $3)
+           RETURNING *`,
+          [sectionRow.id, city.city_name, j + 1]
+        );
+        const cityRow = cityResult.rows[0];
+
+        // Insert stops for this city
+        const stops = city.stops || [];
+        const insertedStops = [];
+        for (let k = 0; k < stops.length; k++) {
+          const stop = stops[k];
+          if (!stop.stop_name) continue;
+          const stopResult = await pool.query(
+            `INSERT INTO itinerary_stops (city_id, stop_name, stop_type, description, timing, check_in, check_out, budget, stop_order)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+             RETURNING *`,
+            [
+              cityRow.id,
+              stop.stop_name,
+              stop.stop_type || null,
+              stop.description || null,
+              stop.timing || null,
+              stop.check_in || null,
+              stop.check_out || null,
+              stop.budget ? parseFloat(stop.budget) : null,
+              k + 1
+            ]
+          );
+          insertedStops.push(stopResult.rows[0]);
+        }
+        cityRow.stops = insertedStops;
+        insertedCities.push(cityRow);
+      }
+      sectionRow.cities = insertedCities;
+      inserted.push(sectionRow);
     }
 
     res.status(201).json({ message: 'Itinerary saved successfully', sections: inserted });
@@ -217,15 +293,35 @@ app.post('/api/itinerary', async (req, res) => {
   }
 });
 
-// Get itinerary sections for a trip
+// Get itinerary sections for a trip (with cities and stops)
 app.get('/api/itinerary/:tripId', async (req, res) => {
   try {
     const { tripId } = req.params;
-    const result = await pool.query(
+    const sectionResult = await pool.query(
       `SELECT * FROM itinerary_sections WHERE trip_id = $1 ORDER BY section_order ASC`,
       [tripId]
     );
-    res.json(result.rows);
+    const sections = sectionResult.rows;
+
+    for (const section of sections) {
+      const cityResult = await pool.query(
+        `SELECT * FROM itinerary_cities WHERE section_id = $1 ORDER BY city_order ASC`,
+        [section.id]
+      );
+      const cities = cityResult.rows;
+
+      for (const city of cities) {
+        const stopResult = await pool.query(
+          `SELECT * FROM itinerary_stops WHERE city_id = $1 ORDER BY stop_order ASC`,
+          [city.id]
+        );
+        city.stops = stopResult.rows;
+      }
+
+      section.cities = cities;
+    }
+
+    res.json(sections);
   } catch (error) {
     console.error('Get itinerary error:', error);
     res.status(500).json({ error: 'Internal server error' });

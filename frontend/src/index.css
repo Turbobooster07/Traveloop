@@ -1,33 +1,48 @@
 :root {
-    /* New UI Color Palette (Cotton Candy / Vaporwave Pastel) */
+    /* Premium Periwinkle-White Palette (inspired by reference UI) */
     --thistle: #cdb4db;
     --pastel-petal: #ffc8dd;
     --baby-pink: #ffafcc;
     --icy-blue: #bde0fe;
     --sky-blue: #a2d2ff;
 
-    --bg-color: #f7fbff; /* Soft icy-blue tinted background */
-    --card-bg: rgba(255, 255, 255, 0.5); /* Bright frosted glass */
-    --text-main: #2b3a4a; /* Deep blue/grey for elegant contrast */
-    --text-muted: #6b7c93;
-    --border-light: rgba(162, 210, 255, 0.3); /* sky-blue */
-    --border-medium: rgba(162, 210, 255, 0.5);
-    
-    --accent-green-bg: var(--icy-blue);
-    --accent-green-text: #2f6b9c;
-    --accent-pink-bg: var(--pastel-petal);
-    --accent-pink-text: #96426b;
-    --accent-yellow-bg: var(--thistle);
-    --accent-yellow-text: #603d75;
+    /* Core UI Tokens */
+    --bg-color: #eef0f8;              /* Soft periwinkle-grey page background */
+    --card-bg: #ffffff;               /* Pure white cards */
+    --card-bg-lavender: #f0eefb;      /* Soft lavender card accent */
+    --card-bg-blue: #e8f4fd;          /* Soft icy-blue card accent */
+    --card-bg-pink: #fde8f3;          /* Soft pink card accent */
 
-    --input-bg: rgba(255, 255, 255, 0.6);
-    --input-border: var(--sky-blue);
-    --input-focus: var(--baby-pink);
+    --text-main: #1a1f36;             /* Deep navy for strong contrast */
+    --text-muted: #6b7c93;            /* Muted blue-grey */
+    --text-light: #9eaac7;
+
+    --border-light: rgba(99, 102, 241, 0.08);  /* Barely-visible indigo border */
+    --border-medium: rgba(99, 102, 241, 0.14);
+    --border-card: rgba(0, 0, 0, 0.06);        /* Ultra-subtle card border */
     
-    --shadow-soft: 0 4px 20px rgba(162, 210, 255, 0.15);
-    --shadow-hover: 0 12px 30px rgba(255, 175, 204, 0.25);
-    --cta-gradient: linear-gradient(135deg, var(--sky-blue) 0%, var(--baby-pink) 100%);
-    --cta-shadow: 0 12px 24px rgba(255, 175, 204, 0.4);
+    --accent-purple: #7c6cf7;         /* Main accent - soft violet */
+    --accent-purple-bg: #ede9fe;      /* Light purple background */
+    --accent-purple-text: #5b21b6;
+    
+    --accent-green-bg: #d1fae5;
+    --accent-green-text: #065f46;
+    --accent-pink-bg: #fce7f3;
+    --accent-pink-text: #9d174d;
+    --accent-yellow-bg: #fef3c7;
+    --accent-yellow-text: #92400e;
+    --accent-blue-bg: #dbeafe;
+    --accent-blue-text: #1e40af;
+
+    --input-bg: #f8f9ff;
+    --input-border: rgba(99, 102, 241, 0.2);
+    --input-focus: var(--accent-purple);
+    
+    --shadow-soft: 0 2px 12px rgba(26, 31, 54, 0.06);
+    --shadow-hover: 0 8px 24px rgba(26, 31, 54, 0.10);
+    --shadow-card: 0 1px 4px rgba(26, 31, 54, 0.05), 0 4px 16px rgba(26, 31, 54, 0.04);
+    --cta-gradient: linear-gradient(135deg, #7c6cf7 0%, #a78bfa 100%);
+    --cta-shadow: 0 8px 20px rgba(124, 108, 247, 0.35);
 }
 
 * {
@@ -64,94 +79,94 @@ body::before, body::after,
 }
 
 body::before {
-    background: var(--thistle);
-    width: 600px;
-    height: 600px;
-    top: -100px;
-    left: -100px;
-    border-radius: 50%;
-    filter: blur(120px);
-    opacity: 0.7;
-    animation-delay: 0s;
-    animation-duration: 25s;
-}
-
-body::after {
-    background: var(--baby-pink);
+    background: #d8d4f7; /* soft violet */
     width: 700px;
     height: 700px;
-    bottom: -100px;
-    right: -100px;
+    top: -200px;
+    left: -150px;
     border-radius: 50%;
-    filter: blur(150px);
-    opacity: 0.6;
-    animation-delay: -10s;
-    animation-duration: 30s;
-}
-
-.bg-shape-yellow {
-    background: var(--sky-blue);
-    width: 500px;
-    height: 500px;
-    top: 20%;
-    right: 20%;
-    border-radius: 50%;
-    filter: blur(130px);
-    opacity: 0.7;
-    animation-delay: -5s;
-    animation-duration: 22s;
-}
-
-.bg-shape-blue-square {
-    background: var(--icy-blue);
-    width: 400px;
-    height: 400px;
-    top: 40%;
-    left: 10%;
-    border-radius: 80px;
-    filter: blur(100px);
-    opacity: 0.8;
-    animation-delay: -12s;
+    filter: blur(140px);
+    opacity: 0.45;
+    animation-delay: 0s;
     animation-duration: 28s;
 }
 
-.bg-shape-pink-blob {
-    background: var(--pastel-petal);
-    width: 450px;
-    height: 450px;
-    top: 10%;
-    left: 40%;
-    border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
-    filter: blur(120px);
-    opacity: 0.7;
-    animation-delay: -3s;
+body::after {
+    background: #c7e0fb; /* soft blue */
+    width: 600px;
+    height: 600px;
+    bottom: -150px;
+    right: -100px;
+    border-radius: 50%;
+    filter: blur(130px);
+    opacity: 0.4;
+    animation-delay: -12s;
     animation-duration: 32s;
 }
 
-.bg-shape-purple-circle {
-    background: var(--thistle);
-    width: 300px;
-    height: 300px;
-    bottom: 10%;
-    left: 30%;
+.bg-shape-yellow {
+    background: #f9d4e8; /* soft pink */
+    width: 500px;
+    height: 500px;
+    top: 30%;
+    right: 10%;
     border-radius: 50%;
-    filter: blur(90px);
-    opacity: 0.6;
-    animation-delay: -18s;
+    filter: blur(140px);
+    opacity: 0.35;
+    animation-delay: -6s;
     animation-duration: 24s;
 }
 
-.bg-shape-green-blob {
-    background: var(--baby-pink);
-    width: 550px;
-    height: 550px;
-    bottom: 20%;
-    right: 10%;
-    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
-    filter: blur(140px);
-    opacity: 0.6;
-    animation-delay: -8s;
+.bg-shape-blue-square {
+    background: #ddd6fe; /* lavender */
+    width: 400px;
+    height: 400px;
+    top: 50%;
+    left: 5%;
+    border-radius: 80px;
+    filter: blur(120px);
+    opacity: 0.3;
+    animation-delay: -15s;
+    animation-duration: 30s;
+}
+
+.bg-shape-pink-blob {
+    background: #bfdbfe; /* light blue */
+    width: 450px;
+    height: 450px;
+    top: 15%;
+    left: 35%;
+    border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+    filter: blur(130px);
+    opacity: 0.3;
+    animation-delay: -4s;
+    animation-duration: 35s;
+}
+
+.bg-shape-purple-circle {
+    background: #e9d5ff; /* light purple */
+    width: 350px;
+    height: 350px;
+    bottom: 15%;
+    left: 25%;
+    border-radius: 50%;
+    filter: blur(110px);
+    opacity: 0.35;
+    animation-delay: -20s;
     animation-duration: 26s;
+}
+
+.bg-shape-green-blob {
+    background: #d8d4f7;
+    width: 500px;
+    height: 500px;
+    bottom: 5%;
+    right: 15%;
+    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+    filter: blur(130px);
+    opacity: 0.3;
+    animation-delay: -9s;
+    animation-duration: 28s;
 }
 
 @keyframes float {
@@ -190,15 +205,16 @@ body::after {
     top: 0;
     z-index: 50;
     width: 100%;
-    background: rgba(255, 255, 255, 0.4);
-    backdrop-filter: blur(24px) saturate(120%);
-    -webkit-backdrop-filter: blur(24px) saturate(120%);
-    border-bottom: 1px solid var(--border-light);
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border-card);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 16px 5%;
+    padding: 14px 5%;
     transition: all 0.3s ease;
+    box-shadow: 0 1px 0 rgba(26, 31, 54, 0.06);
 }
 
 .dash-logo {
@@ -217,19 +233,19 @@ body::after {
 }
 
 .dash-profile {
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
-    background: var(--accent-green-bg);
-    color: var(--accent-green-text);
+    background: var(--cta-gradient);
+    color: #fff;
     display: flex;
     justify-content: center;
     align-items: center;
     cursor: pointer;
-    font-weight: 600;
-    font-size: 15px;
-    border: 2px solid rgba(255, 255, 255, 0.6);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    font-weight: 700;
+    font-size: 14px;
+    border: none;
+    box-shadow: var(--cta-shadow);
     transition: transform 0.2s, box-shadow 0.2s;
 }
 
@@ -337,24 +353,15 @@ body::after {
 .dash-toolbar {
     display: flex;
     justify-content: space-between;
-    gap: 16px;
+    gap: 12px;
     align-items: center;
     flex-wrap: wrap;
     
-    /* Mirror glass effect */
-    background: rgba(255, 255, 255, 0.25);
-    backdrop-filter: blur(30px) saturate(180%);
-    -webkit-backdrop-filter: blur(30px) saturate(180%);
-    
-    padding: 12px;
-    border-radius: 100px;
-    
-    /* Mirror reflection highlights */
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    border-top: 1px solid rgba(255, 255, 255, 0.9);
-    border-left: 1px solid rgba(255, 255, 255, 0.8);
-    
-    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.08), inset 0 2px 4px 0 rgba(255, 255, 255, 0.6);
+    background: #ffffff;
+    border: 1px solid var(--border-card);
+    padding: 10px 12px;
+    border-radius: 20px;
+    box-shadow: var(--shadow-card);
 }
 
 .dash-search {
