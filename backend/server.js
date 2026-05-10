@@ -97,6 +97,21 @@ app.post('/api/register', async (req, res) => {
 app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
   
+  // Special case for Admin
+  if (username === 'admin' && password === 'admin1234@') {
+    return res.json({
+      message: 'Admin login successful',
+      user: {
+        id: 0,
+        username: 'admin',
+        first_name: 'System',
+        last_name: 'Admin',
+        role: 'admin',
+        profile_pic: 'https://cdn-icons-png.flaticon.com/512/6024/6024190.png'
+      }
+    });
+  }
+  
   try {
     const result = await pool.query(userQueries.getUserByUsername, [username]);
     

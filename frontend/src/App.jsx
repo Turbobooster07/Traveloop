@@ -13,6 +13,7 @@ import DayWiseItinerary from './pages/DayWiseItinerary';
 import AdminPanel from './pages/AdminPanel';
 import PackingList from './pages/PackingList';
 import TripNotes from './pages/TripNotes';
+import AdminLogin from './pages/AdminLogin';
 import './index.css';
 
 function App() {
@@ -20,6 +21,8 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Login />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/admin-login" element={<AdminLogin />} />
         <Route path="/register" element={<Register />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/plan-trip" element={<PlanTrip />} />

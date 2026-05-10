@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Search, Filter, ArrowDownUp, Layers, User, Loader2, AlertCircle, RefreshCw, ChevronUp, ChevronDown } from 'lucide-react';
 import { PieChart, Pie, Cell, LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import './admin.css';
@@ -8,6 +9,7 @@ const API_BASE = 'http://localhost:5000/api/admin';
 const COLORS = ['#8b5cf6', '#ec4899', '#10b981', '#f59e0b', '#3b82f6', '#ef4444'];
 
 const AdminPanel = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('trends');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('default');
@@ -39,6 +41,19 @@ const AdminPanel = () => {
       setLoading(prev => ({ ...prev, [key]: false }));
     }
   }, []);
+
+  // Auth Check
+  useEffect(() => {
+    const savedUser = localStorage.getItem('user');
+    if (!savedUser) {
+      navigate('/admin-login');
+      return;
+    }
+    const user = JSON.parse(savedUser);
+    if (user.role !== 'admin') {
+      navigate('/admin-login');
+    }
+  }, [navigate]);
 
   // Fetch all data on mount
   useEffect(() => {
