@@ -121,7 +121,14 @@ const Dashboard = () => {
         <div className="dash-toolbar-wrapper">
           <div className="dash-toolbar">
             <div className="dash-search">
-              <input type="text" placeholder="Where do you want to go?" />
+              <input 
+                type="text" 
+                placeholder="Where do you want to go?" 
+                readOnly
+                onClick={() => navigate('/search', { state: { user } })}
+                onFocus={() => navigate('/search', { state: { user } })}
+                style={{ cursor: 'pointer' }}
+              />
             </div>
             <div className="dash-actions">
               <button className="dash-btn-chip">Dates</button>

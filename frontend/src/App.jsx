@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard';
 import PlanTrip from './pages/PlanTrip';
 import BuildItinerary from './pages/BuildItinerary';
 import TripListing from './pages/TripListing';
+import SearchActivities from './pages/SearchActivities';
 import './index.css';
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
         <Route path="/plan-trip" element={<PlanTrip />} />
         <Route path="/build-itinerary" element={<BuildItinerary />} />
         <Route path="/my-trips" element={<TripListing />} />
+        <Route path="/search" element={<SearchActivities />} />
       </Routes>
     </Router>
   );
