@@ -1,13 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const user = location.state?.user;
-
-  const [trips, setTrips] = useState([]);
-  const [recommendations, setRecommendations] = useState([]);
 
   if (!user) {
     return (
@@ -21,154 +18,159 @@ const Dashboard = () => {
     );
   }
 
-  useEffect(() => {
-    if (user) {
-      fetchTrips();
-      fetchRecommendations();
-    }
-  }, [user]);
-
-  const fetchTrips = async () => {
-    try {
-      const response = await fetch(`http://localhost:5000/api/trips/${user.id}`);
-      if (response.ok) {
-        const data = await response.json();
-        setTrips(data);
-      }
-    } catch (err) {
-      console.error("Failed to fetch trips", err);
-    }
-  };
-
-  const fetchRecommendations = async () => {
-    try {
-      const response = await fetch('http://localhost:5000/api/recommendations');
-      if (response.ok) {
-        const data = await response.json();
-        setRecommendations(data);
-      }
-    } catch (err) {
-      console.error("Failed to fetch recommendations", err);
-    }
-  };
-
-
-
   const handleLogout = () => {
-    // In a real app, you would clear the JWT token here
     navigate('/');
   };
 
+  const getInitials = (first, last) => {
+    return `${first?.charAt(0) || ''}${last?.charAt(0) || ''}`;
+  };
+
   return (
-    <div className="dashboard-layout">
-      {/* Top Navbar */}
-      <nav className="dashboard-navbar">
-        <div className="navbar-logo">
-          <img src="/logo.png" alt="Traveloop Logo" />
-          <h2>Traveloop</h2>
+    <div className="dash-wrapper">
+      <div className="bg-shape-yellow"></div>
+      <div className="bg-shape-blue-square"></div>
+      <div className="bg-shape-pink-blob"></div>
+      <div className="bg-shape-purple-circle"></div>
+      <div className="bg-shape-green-blob"></div>
+
+      {/* Navbar */}
+      <nav className="dash-nav">
+        <div className="dash-logo">
+          <h1>Traveloop</h1>
         </div>
-        <div className="navbar-user">
-          <div className="user-details">
-            <span className="user-name">{user.first_name} {user.last_name}</span>
-            <span className="user-username">@{user.username}</span>
-          </div>
-          <div className="user-avatar">
-            {user.first_name.charAt(0)}{user.last_name.charAt(0)}
-          </div>
-          <button onClick={handleLogout} className="logout-btn navbar-logout">Log Out</button>
+        <div className="dash-profile" onClick={handleLogout} title="Logout">
+          {getInitials(user.first_name, user.last_name)}
         </div>
       </nav>
 
-      <div className="dashboard-body">
-
-      <main className="dashboard-main">
+      <div className="dash-container">
         {/* Banner */}
-        <div className="dashboard-banner">
-          <img src="/banner.png" alt="Traveloop Banner" />
+        <div className="dash-banner">
+          <img src="/banner.jpg" alt="Summer Sale Background" />
+          <div className="dash-banner-overlay"></div>
+          <div className="banner-shape-1"></div>
+          <div className="banner-shape-2"></div>
+          <div className="dash-banner-content">
+            <h2>Discover the World</h2>
+          </div>
         </div>
 
         {/* Toolbar */}
-        <div className="dashboard-toolbar">
-          <div className="toolbar-search">
-            <input type="text" placeholder="Search trips, destinations..." />
-          </div>
-          <div className="toolbar-actions">
-            <div className="toolbar-group">
-              <label>Group By:</label>
-              <select>
-                <option>None</option>
-                <option>Month</option>
-                <option>Status</option>
-              </select>
+        <div className="dash-toolbar-wrapper">
+          <div className="dash-toolbar">
+            <div className="dash-search">
+              <input type="text" placeholder="Where do you want to go?" />
             </div>
-            <div className="toolbar-group">
-              <label>Filter:</label>
-              <select>
-                <option>All</option>
-                <option>Upcoming</option>
-                <option>Past</option>
-              </select>
-            </div>
-            <div className="toolbar-group">
-              <label>Sort By:</label>
-              <select>
-                <option>Date (Closest)</option>
-                <option>Date (Furthest)</option>
-                <option>Name (A-Z)</option>
-              </select>
+            <div className="dash-actions">
+              <button className="dash-btn-chip">Dates</button>
+              <button className="dash-btn-chip">Guests</button>
+              <button className="dash-btn-chip">Filters</button>
             </div>
           </div>
         </div>
 
-        <div className="dashboard-inner">
-          <header className="dashboard-header">
-          <h1>Welcome back, {user.first_name}!</h1>
-          <p className="subtitle">Here's what's happening with your travels today.</p>
-        </header>
-        
-        <div className="dashboard-content">
-          <div className="dashboard-card" style={{ flex: 1 }}>
-            <h3>Upcoming Trips</h3>
-            {trips.length > 0 ? (
-              <div className="trips-list" style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {trips.map(trip => (
-                  <div key={trip.id} className="trip-item" style={{ background: 'rgba(0,0,0,0.2)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                    <h4 style={{ margin: '0 0 4px 0', color: 'var(--primary-color)' }}>{trip.destination}</h4>
-                    <p style={{ margin: '0 0 8px 0', fontSize: '13px', color: 'var(--text-muted)' }}>
-                      {new Date(trip.start_date).toLocaleDateString()} - {new Date(trip.end_date).toLocaleDateString()}
-                    </p>
-                    <span style={{ fontSize: '12px', background: 'rgba(16, 185, 129, 0.2)', color: '#10b981', padding: '4px 8px', borderRadius: '4px' }}>{trip.status}</span>
-                  </div>
-                ))}
+        {/* Top Regional Selections */}
+        <div className="dash-section">
+          <div className="dash-section-header">
+            <h3>Top Regional Selections</h3>
+            <span className="dash-section-link">View all</span>
+          </div>
+          <div className="dash-cards-scroll-container">
+            {/* Card 1 */}
+            <div className="dash-card-square">
+              <div className="dash-card-square-img">
+                <img src="/regional_1.png" alt="Europe" />
               </div>
-            ) : (
-              <p className="subtitle" style={{ marginTop: '12px' }}>You have no upcoming trips. Start planning your next adventure!</p>
-            )}
-            <button className="login-btn" style={{ width: 'auto', padding: '10px 24px', marginTop: '20px' }} onClick={() => navigate('/plan-trip', { state: { user } })}>Plan a Trip</button>
-          </div>
-        </div>
-
-        {/* Recommendations Section */}
-        <div className="recommendations-section" style={{ marginTop: '40px' }}>
-          <h2 style={{ marginBottom: '20px' }}>Recommended For You</h2>
-          <div className="recommendations-scroll">
-            {recommendations.map(rec => (
-              <div key={rec.id} className="recommendation-card">
-                <img src={rec.image} alt={rec.title} />
-                <div className="recommendation-content">
-                  <h4>{rec.title}</h4>
-                  <p className="location">{rec.location}</p>
-                  <p className="desc">{rec.description}</p>
-                </div>
+              <div className="dash-card-square-info">
+                <h4>Western Europe</h4>
               </div>
-            ))}
+            </div>
+            {/* Duplicate cards for UI demonstration */}
+            <div className="dash-card-square">
+              <div className="dash-card-square-img">
+                <img src="/regional_1.png" alt="Asia" style={{ filter: 'hue-rotate(90deg)' }} />
+              </div>
+              <div className="dash-card-square-info">
+                <h4>Southeast Asia</h4>
+              </div>
+            </div>
+            <div className="dash-card-square">
+              <div className="dash-card-square-img">
+                <img src="/regional_1.png" alt="Americas" style={{ filter: 'hue-rotate(180deg)' }} />
+              </div>
+              <div className="dash-card-square-info">
+                <h4>Latin America</h4>
+              </div>
+            </div>
+            <div className="dash-card-square">
+              <div className="dash-card-square-img">
+                <img src="/regional_1.png" alt="Nordics" style={{ filter: 'hue-rotate(270deg)' }} />
+              </div>
+              <div className="dash-card-square-info">
+                <h4>The Nordics</h4>
+              </div>
+            </div>
+            <div className="dash-card-square">
+              <div className="dash-card-square-img">
+                <img src="/regional_1.png" alt="Africa" style={{ filter: 'sepia(0.5)' }} />
+              </div>
+              <div className="dash-card-square-info">
+                <h4>North Africa</h4>
+              </div>
+            </div>
           </div>
         </div>
 
+        {/* Previous Trips */}
+        <div className="dash-section">
+          <div className="dash-section-header">
+            <h3>Previous Trips</h3>
+            <span className="dash-section-link">View history</span>
+          </div>
+          <div className="dash-cards-scroll-container">
+            {/* Trip Card 1 */}
+            <div className="dash-card-vert">
+              <img src="/trip_1.png" alt="Maldives" />
+              <div className="dash-card-vert-overlay">
+                <h4>Maldives Escape</h4>
+                <p>June 2025</p>
+              </div>
+            </div>
+            {/* Duplicate cards for UI demonstration */}
+            <div className="dash-card-vert">
+              <img src="/trip_1.png" alt="Bali" style={{ filter: 'hue-rotate(45deg)' }} />
+              <div className="dash-card-vert-overlay">
+                <h4>Bali Retreat</h4>
+                <p>March 2025</p>
+              </div>
+            </div>
+            <div className="dash-card-vert">
+              <img src="/trip_1.png" alt="Alps" style={{ filter: 'hue-rotate(135deg)' }} />
+              <div className="dash-card-vert-overlay">
+                <h4>Swiss Alps</h4>
+                <p>December 2024</p>
+              </div>
+            </div>
+            <div className="dash-card-vert">
+              <img src="/trip_1.png" alt="Tokyo" style={{ filter: 'hue-rotate(225deg)' }} />
+              <div className="dash-card-vert-overlay">
+                <h4>Tokyo Lights</h4>
+                <p>October 2024</p>
+              </div>
+            </div>
+          </div>
         </div>
-      </main>
+      </div>
+
+      {/* Floating Action Button */}
+      <button className="dash-fab">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+        </svg>
+        Plan a trip
+      </button>
     </div>
-  </div>
   );
 };
 
