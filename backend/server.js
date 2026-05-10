@@ -13,7 +13,8 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // PostgreSQL connection
 const pool = new Pool({
@@ -30,6 +31,15 @@ pool.connect((err, client, release) => {
     return console.error('Error acquiring client (Make sure PostgreSQL is running)', err.stack);
   }
   console.log('Connected to PostgreSQL successfully');
+  // Ensure profile_pic column exists
+  pool.query(`
+    DO $$ 
+    BEGIN 
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='profile_pic') THEN
+        ALTER TABLE users ADD COLUMN profile_pic TEXT;
+      END IF;
+    END $$;
+  `).catch(err => console.error('Schema update error:', err));
   release();
 });
 
@@ -59,7 +69,7 @@ app.post('/api/register', async (req, res) => {
     // Save to database
     const result = await pool.query(
       userQueries.registerUser,
-      [username, passwordHash, firstName, lastName, email, phone, city, country, additionalInfo]
+      [username, passwordHash, firstName, lastName, email, phone, city, country, additionalInfo, null]
     );
     
     // Return the plain-text credentials so the frontend can display them to the user
@@ -461,10 +471,10 @@ app.get('/api/users/:userId', async (req, res) => {
 app.put('/api/users/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
-    const { first_name, last_name, email, phone, city, country, additional_info } = req.body;
+    const { first_name, last_name, email, phone, city, country, additional_info, profile_pic } = req.body;
     
     const result = await pool.query(userQueries.updateUserProfile, [
-      first_name, last_name, email, phone, city, country, additional_info, userId
+      first_name, last_name, email, phone, city, country, additional_info, profile_pic, userId
     ]);
     
     if (result.rows.length === 0) {
