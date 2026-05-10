@@ -12,11 +12,17 @@ const Login = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
+    // Check if already logged in
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      navigate('/dashboard', { state: { user: JSON.parse(savedUser) } });
+    }
+
     if (credentials) {
       setUsername(credentials.username);
       setPassword(credentials.password);
     }
-  }, [credentials]);
+  }, [credentials, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -33,6 +39,8 @@ const Login = () => {
       const data = await response.json();
       
       if (response.ok) {
+        // Save to localStorage for persistence
+        localStorage.setItem('user', JSON.stringify(data.user));
         navigate('/dashboard', { state: { user: data.user } });
       } else {
         setError(data.error || 'Login failed');

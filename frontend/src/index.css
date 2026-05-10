@@ -1002,3 +1002,209 @@ body::after {
 .close-btn:hover {
     color: var(--primary-color);
 }
+/* =========================================
+   User Profile Page
+   ========================================= */
+
+.profile-container {
+    width: 100%;
+    padding: 40px 5%;
+    display: flex;
+    flex-direction: column;
+    gap: 48px;
+    margin: 0 auto;
+    max-width: 1400px;
+    position: relative;
+    z-index: 1;
+}
+
+.profile-user-info {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(30px) saturate(150%);
+    -webkit-backdrop-filter: blur(30px) saturate(150%);
+    padding: 40px;
+    border-radius: 40px;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: var(--shadow-soft);
+}
+
+.profile-image-wrapper {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 4px solid #fff;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    flex-shrink: 0;
+}
+
+.profile-image-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-details-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.profile-details-container h2 {
+    font-size: 36px;
+    font-weight: 800;
+    font-family: 'Outfit', sans-serif;
+    color: var(--text-main);
+    margin: 0;
+}
+
+.profile-email {
+    font-size: 16px;
+    color: var(--sky-blue);
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.profile-bio {
+    font-size: 15px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    max-width: 600px;
+}
+
+.edit-profile-btn {
+    margin-top: 16px;
+    align-self: flex-start;
+    padding: 10px 24px;
+    border-radius: 100px;
+    background: #fff;
+    border: 1px solid var(--border-medium);
+    color: var(--text-main);
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.edit-profile-btn:hover {
+    background: var(--icy-blue);
+    border-color: var(--sky-blue);
+    transform: translateY(-2px);
+}
+
+.profile-trip-section {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.profile-trip-section h3 {
+    font-size: 26px;
+    font-weight: 700;
+    font-family: 'Outfit', sans-serif;
+    color: var(--text-main);
+}
+
+.profile-trips-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+}
+
+.profile-trip-card {
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 28px;
+    border: 1px solid var(--border-light);
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: var(--shadow-soft);
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-trip-card:hover {
+    transform: translateY(-10px);
+    box-shadow: var(--shadow-hover);
+    border-color: var(--border-medium);
+}
+
+.trip-card-img {
+    height: 180px;
+    overflow: hidden;
+    position: relative;
+}
+
+.trip-card-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.profile-trip-card:hover .trip-card-img img {
+    transform: scale(1.1);
+}
+
+.trip-card-body {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.trip-card-body h4 {
+    font-size: 19px;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0;
+}
+
+.trip-card-date {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+}
+
+.view-trip-btn {
+    padding: 10px 20px;
+    border-radius: 14px;
+    background: var(--cta-gradient);
+    color: #fff;
+    border: none;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    box-shadow: var(--cta-shadow);
+    transition: all 0.2s;
+    text-align: center;
+    width: fit-content;
+}
+
+.view-trip-btn:hover {
+    opacity: 0.9;
+    transform: scale(1.02);
+}
+
+@media (max-width: 768px) {
+    .profile-user-info {
+        flex-direction: column;
+        text-align: center;
+        padding: 30px;
+    }
+    
+    .edit-profile-btn {
+        align-self: center;
+    }
+    
+    .profile-details-container {
+        align-items: center;
+    }
+    
+    .profile-trips-grid {
+        grid-template-columns: 1fr;
+    }
+}

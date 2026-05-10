@@ -4,6 +4,7 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import PlanTrip from './pages/PlanTrip';
 import BuildItinerary from './pages/BuildItinerary';
+import UserProfile from './pages/UserProfile';
 import './index.css';
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/plan-trip" element={<PlanTrip />} />
         <Route path="/build-itinerary" element={<BuildItinerary />} />
+        <Route path="/profile" element={<UserProfile />} />
       </Routes>
     </Router>
   );

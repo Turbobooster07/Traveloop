@@ -245,6 +245,23 @@ app.get('/api/trips/:userId', async (req, res) => {
   }
 });
 
+// Get user profile
+app.get('/api/users/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const result = await pool.query(userQueries.getUserById, [userId]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Get user error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Get recommendations (Mock data for now)
 app.get('/api/recommendations', (req, res) => {
   const recommendations = [
