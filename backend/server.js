@@ -506,6 +506,163 @@ app.get('/api/recommendations', (req, res) => {
   res.json(recommendations);
 });
 
+// ==================== ADMIN API ENDPOINTS ====================
+
+// Admin: Get all users with trip counts
+app.get('/api/admin/users', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        u.id,
+        u.username,
+        u.first_name,
+        u.last_name,
+        u.email,
+        u.phone,
+        u.city,
+        u.country,
+        u.created_at,
+        COUNT(t.id)::INTEGER AS trip_count
+      FROM users u
+      LEFT JOIN trips t ON t.user_id = u.id
+      GROUP BY u.id
+      ORDER BY u.created_at DESC
+    `);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Admin get users error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Admin: Get popular destinations (cities) from trips
+app.get('/api/admin/cities', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        destination AS name,
+        COUNT(*)::INTEGER AS visit_count,
+        COUNT(DISTINCT user_id)::INTEGER AS unique_users,
+        MIN(start_date) AS first_visit,
+        MAX(start_date) AS last_visit
+      FROM trips
+      GROUP BY destination
+      ORDER BY visit_count DESC
+    `);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Admin get cities error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Admin: Get popular activities from day_plan_activities
+app.get('/api/admin/activities', async (req, res) => {
+  try {
+    // Check if the table exists first
+    const tableCheck = await pool.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_name = 'day_plan_activities'
+      )
+    `);
+    
+    if (!tableCheck.rows[0].exists) {
+      return res.json([]);
+    }
+
+    const result = await pool.query(`
+      SELECT 
+        activity_text AS name,
+        COUNT(*)::INTEGER AS count,
+        COALESCE(SUM(expense), 0)::NUMERIC AS total_expense
+      FROM day_plan_activities
+      WHERE activity_text IS NOT NULL AND activity_text != ''
+      GROUP BY activity_text
+      ORDER BY count DESC
+    `);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Admin get activities error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Admin: Get summary stats for analytics/trends
+app.get('/api/admin/stats', async (req, res) => {
+  try {
+    const userCount = await pool.query('SELECT COUNT(*)::INTEGER AS count FROM users');
+    const tripCount = await pool.query('SELECT COUNT(*)::INTEGER AS count FROM trips');
+    
+    // Users registered per month (last 6 months)
+    const userTrend = await pool.query(`
+      SELECT 
+        TO_CHAR(created_at, 'Mon') AS month,
+        COUNT(*)::INTEGER AS users
+      FROM users
+      WHERE created_at >= NOW() - INTERVAL '6 months'
+      GROUP BY TO_CHAR(created_at, 'Mon'), DATE_TRUNC('month', created_at)
+      ORDER BY DATE_TRUNC('month', created_at) ASC
+    `);
+
+    // Trips per month (last 6 months)
+    const tripTrend = await pool.query(`
+      SELECT 
+        TO_CHAR(created_at, 'Mon') AS month,
+        COUNT(*)::INTEGER AS trips
+      FROM trips
+      WHERE created_at >= NOW() - INTERVAL '6 months'
+      GROUP BY TO_CHAR(created_at, 'Mon'), DATE_TRUNC('month', created_at)
+      ORDER BY DATE_TRUNC('month', created_at) ASC
+    `);
+
+    // Trip status breakdown (for pie chart)
+    const statusBreakdown = await pool.query(`
+      SELECT 
+        COALESCE(status, 'Unknown') AS name,
+        COUNT(*)::INTEGER AS value
+      FROM trips
+      GROUP BY status
+    `);
+
+    // Top destinations (for bar chart)
+    const topDestinations = await pool.query(`
+      SELECT 
+        destination AS name,
+        COUNT(*)::INTEGER AS visits
+      FROM trips
+      GROUP BY destination
+      ORDER BY visits DESC
+      LIMIT 6
+    `);
+
+    // Most active users
+    const activeUsers = await pool.query(`
+      SELECT 
+        u.first_name || ' ' || u.last_name AS name,
+        COUNT(t.id)::INTEGER AS trips
+      FROM users u
+      JOIN trips t ON t.user_id = u.id
+      GROUP BY u.id, u.first_name, u.last_name
+      ORDER BY trips DESC
+      LIMIT 5
+    `);
+
+    res.json({
+      totalUsers: userCount.rows[0].count,
+      totalTrips: tripCount.rows[0].count,
+      userTrend: userTrend.rows,
+      tripTrend: tripTrend.rows,
+      statusBreakdown: statusBreakdown.rows,
+      topDestinations: topDestinations.rows,
+      activeUsers: activeUsers.rows
+    });
+  } catch (error) {
+    console.error('Admin get stats error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
