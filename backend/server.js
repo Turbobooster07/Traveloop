@@ -204,11 +204,17 @@ app.post('/api/itinerary', async (req, res) => {
         stop_type VARCHAR(50),
         description TEXT,
         timing VARCHAR(100),
+        check_in TIME,
+        check_out TIME,
         budget NUMERIC(12,2),
         stop_order INTEGER,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    // Add check_in / check_out columns if missing (for existing tables)
+    try { await pool.query(`ALTER TABLE itinerary_stops ADD COLUMN IF NOT EXISTS check_in TIME`); } catch (e) {}
+    try { await pool.query(`ALTER TABLE itinerary_stops ADD COLUMN IF NOT EXISTS check_out TIME`); } catch (e) {}
 
     // Delete old sections for this trip if re-saving (cascades to cities and stops)
     if (trip_id) {
@@ -256,8 +262,8 @@ app.post('/api/itinerary', async (req, res) => {
           const stop = stops[k];
           if (!stop.stop_name) continue;
           const stopResult = await pool.query(
-            `INSERT INTO itinerary_stops (city_id, stop_name, stop_type, description, timing, budget, stop_order)
-             VALUES ($1, $2, $3, $4, $5, $6, $7)
+            `INSERT INTO itinerary_stops (city_id, stop_name, stop_type, description, timing, check_in, check_out, budget, stop_order)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
              RETURNING *`,
             [
               cityRow.id,
@@ -265,6 +271,8 @@ app.post('/api/itinerary', async (req, res) => {
               stop.stop_type || null,
               stop.description || null,
               stop.timing || null,
+              stop.check_in || null,
+              stop.check_out || null,
               stop.budget ? parseFloat(stop.budget) : null,
               k + 1
             ]
