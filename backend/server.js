@@ -522,10 +522,29 @@ app.get('/api/recommendations', (req, res) => {
   res.json(recommendations);
 });
 
-// Community Endpoints
+// Community Endpoints — Get all posts with like/comment counts
 app.get('/api/community/posts', async (req, res) => {
   try {
-    const result = await pool.query(communityQueries.getAllPosts);
+    const result = await pool.query(`
+      SELECT 
+        p.id, p.user_id, p.content, p.tags, p.created_at,
+        u.first_name, u.last_name, u.profile_pic, u.username,
+        COALESCE(lk.like_count, 0)::INTEGER AS like_count,
+        COALESCE(cm.comment_count, 0)::INTEGER AS comment_count,
+        COALESCE(
+          (SELECT json_agg(cl.user_id) FROM community_likes cl WHERE cl.post_id = p.id),
+          '[]'
+        ) AS liked_by
+      FROM community_posts p
+      JOIN users u ON p.user_id = u.id
+      LEFT JOIN (
+        SELECT post_id, COUNT(*)::INTEGER AS like_count FROM community_likes GROUP BY post_id
+      ) lk ON lk.post_id = p.id
+      LEFT JOIN (
+        SELECT post_id, COUNT(*)::INTEGER AS comment_count FROM community_comments GROUP BY post_id
+      ) cm ON cm.post_id = p.id
+      ORDER BY p.created_at DESC
+    `);
     res.json(result.rows);
   } catch (error) {
     console.error('Get community posts error:', error);
@@ -541,6 +560,23 @@ app.post('/api/community/posts', async (req, res) => {
   } catch (error) {
     console.error('Create post error:', error);
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Delete a community post (only owner)
+app.delete('/api/community/posts/:postId', async (req, res) => {
+  const { postId } = req.params;
+  const { user_id } = req.body;
+  try {
+    const result = await pool.query(
+      'DELETE FROM community_posts WHERE id = $1 AND user_id = $2 RETURNING id',
+      [postId, user_id]
+    );
+    if (result.rows.length === 0) return res.status(403).json({ error: 'Unauthorized' });
+    res.json({ message: 'Post deleted' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to delete post' });
   }
 });
 
@@ -580,10 +616,34 @@ app.post('/api/community/posts/:postId/like', async (req, res) => {
       'INSERT INTO community_likes (post_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
       [postId, user_id]
     );
-    res.status(200).json({ message: 'Post liked' });
+    const countResult = await pool.query(
+      'SELECT COUNT(*)::INTEGER AS like_count FROM community_likes WHERE post_id = $1',
+      [postId]
+    );
+    res.status(200).json({ message: 'Post liked', like_count: countResult.rows[0].like_count });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to like post' });
+  }
+});
+
+// Unlike a post
+app.delete('/api/community/posts/:postId/like', async (req, res) => {
+  const { postId } = req.params;
+  const { user_id } = req.body;
+  try {
+    await pool.query(
+      'DELETE FROM community_likes WHERE post_id = $1 AND user_id = $2',
+      [postId, user_id]
+    );
+    const countResult = await pool.query(
+      'SELECT COUNT(*)::INTEGER AS like_count FROM community_likes WHERE post_id = $1',
+      [postId]
+    );
+    res.status(200).json({ message: 'Post unliked', like_count: countResult.rows[0].like_count });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to unlike post' });
   }
 });
 
@@ -592,7 +652,7 @@ app.get('/api/community/posts/:postId/comments', async (req, res) => {
   const { postId } = req.params;
   try {
     const result = await pool.query(`
-      SELECT c.id, c.content, c.created_at, u.first_name, u.last_name, u.profile_pic
+      SELECT c.id, c.content, c.created_at, c.user_id, u.first_name, u.last_name, u.profile_pic, u.username
       FROM community_comments c
       JOIN users u ON c.user_id = u.id
       WHERE c.post_id = $1
@@ -613,10 +673,34 @@ app.post('/api/community/posts/:postId/comments', async (req, res) => {
       'INSERT INTO community_comments (post_id, user_id, content) VALUES ($1, $2, $3) RETURNING *',
       [postId, user_id, content]
     );
-    res.status(201).json(result.rows[0]);
+    // Return enriched comment with user info
+    const enriched = await pool.query(`
+      SELECT c.id, c.content, c.created_at, c.user_id, u.first_name, u.last_name, u.profile_pic, u.username
+      FROM community_comments c
+      JOIN users u ON c.user_id = u.id
+      WHERE c.id = $1
+    `, [result.rows[0].id]);
+    res.status(201).json(enriched.rows[0]);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to add comment' });
+  }
+});
+
+// Delete a comment (only owner)
+app.delete('/api/community/comments/:commentId', async (req, res) => {
+  const { commentId } = req.params;
+  const { user_id } = req.body;
+  try {
+    const result = await pool.query(
+      'DELETE FROM community_comments WHERE id = $1 AND user_id = $2 RETURNING id, post_id',
+      [commentId, user_id]
+    );
+    if (result.rows.length === 0) return res.status(403).json({ error: 'Unauthorized' });
+    res.json({ message: 'Comment deleted', post_id: result.rows[0].post_id });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to delete comment' });
   }
 });
 
