@@ -10,6 +10,8 @@ import Community from './pages/Community';
 import TripListing from './pages/TripListing';
 import SearchActivities from './pages/SearchActivities';
 import DayWiseItinerary from './pages/DayWiseItinerary';
+import AdminPanel from './pages/AdminPanel';
+import PackingList from './pages/PackingList';
 import './index.css';
 
 function App() {
@@ -27,6 +29,8 @@ function App() {
         <Route path="/my-trips" element={<TripListing />} />
         <Route path="/search" element={<SearchActivities />} />
         <Route path="/day-itinerary" element={<DayWiseItinerary />} />
+        <Route path="/admin" element={<AdminPanel />} />
+        <Route path="/packing-list" element={<PackingList />} />
       </Routes>
     </Router>
   );

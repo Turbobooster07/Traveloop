@@ -131,7 +131,6 @@ const SearchActivities = () => {
         
         {/* Main Search Bar in Navbar */}
         <div style={{ flex: 1, maxWidth: '500px', margin: '0 32px', position: 'relative' }}>
-          <span style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', fontSize: '16px', color: 'var(--text-muted)' }}>🔍</span>
           <input
             type="text"
             value={search}
@@ -139,7 +138,7 @@ const SearchActivities = () => {
             placeholder="Search activities or cities... (e.g. Paragliding)"
             style={{
               width: '100%',
-              padding: '12px 16px 12px 44px',
+              padding: '12px 16px',
               background: 'var(--input-bg)',
               border: '1px solid var(--input-border)',
               borderRadius: '14px',
@@ -258,15 +257,15 @@ const SearchActivities = () => {
                     onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'var(--shadow-card)'; }}
                     >
                       <div style={{ display: 'flex', gap: '20px', alignItems: 'center', flex: 1 }}>
-                        <div style={{ width: '60px', height: '60px', borderRadius: '16px', background: 'var(--card-bg-lavender)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>
-                          {item.type === 'Sightseeing' ? '🏛️' : item.type === 'Adventure' ? '🪂' : item.type === 'Relaxation' ? '🏖️' : item.type === 'Gastronomy' ? '🍽️' : '🗺️'}
+                        <div style={{ width: '60px', height: '60px', borderRadius: '16px', background: 'var(--card-bg-lavender)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', fontWeight: '700', color: 'var(--text-main)' }}>
+                          {item.type === 'Sightseeing' ? 'S' : item.type === 'Adventure' ? 'A' : item.type === 'Relaxation' ? 'R' : item.type === 'Gastronomy' ? 'G' : 'M'}
                         </div>
                         <div style={{ flex: 1 }}>
                           <h4 style={{ margin: '0 0 6px 0', fontSize: '18px', fontWeight: '700', color: 'var(--text-main)' }}>{item.name}</h4>
                           <p style={{ margin: '0 0 8px 0', fontSize: '14px', color: 'var(--text-muted)', lineHeight: '1.4' }}>{item.full}</p>
                           <div style={{ display: 'flex', gap: '12px' }}>
                             <span style={{ fontSize: '12px', fontWeight: '600', padding: '4px 10px', borderRadius: '8px', background: 'var(--card-bg-blue)', color: 'var(--accent-blue-text)' }}>
-                              ⭐ {item.rating} / 5.0
+                              Rating: {item.rating} / 5.0
                             </span>
                             <span style={{ fontSize: '12px', fontWeight: '600', padding: '4px 10px', borderRadius: '8px', background: 'var(--card-bg-pink)', color: 'var(--accent-pink-text)' }}>
                               ₹{item.price} estimated
@@ -315,7 +314,6 @@ const SearchActivities = () => {
               padding: '60px 40px',
               textAlign: 'center'
             }}>
-              <p style={{ fontSize: '40px', margin: '0 0 16px 0' }}>🔍</p>
               <h3 style={{ margin: '0 0 8px 0', color: 'var(--text-main)', fontFamily: "'Outfit', sans-serif", fontSize: '20px' }}>
                 No results found
               </h3>

@@ -1,32 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const STOP_TYPES = ['attraction', 'restaurant', 'hotel', 'activity', 'other'];
-
-const createStop = () => ({
-  id: Date.now() + Math.random(),
-  stop_name: '',
-  stop_type: 'attraction',
-  description: '',
-  timing: '',
-  budget: ''
-});
-
-const createCity = () => ({
-  id: Date.now() + Math.random(),
-  city_name: '',
-  stops: []
-});
-
-const createSection = (num) => ({
-  id: Date.now() + Math.random(),
-  title: `Section ${num}`,
-  description: '',
-  from_date: '',
-  to_date: '',
-  budget: '',
-  cities: []
-});
 
 const BuildItinerary = () => {
   const navigate = useNavigate();
@@ -35,7 +10,7 @@ const BuildItinerary = () => {
   const trip = location.state?.trip;
 
   const [sections, setSections] = useState([
-    { id: 1, title: 'Section 1', description: '', from_date: '', to_date: '', budget: '' }
+    { id: Date.now(), title: 'Section 1', description: '', from_date: '', to_date: '', budget: '', cities: [] }
   ]);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -66,7 +41,9 @@ const BuildItinerary = () => {
               stops: (c.stops || []).map(st => ({
                 ...st,
                 id: st.id,
-                budget: st.budget ? String(st.budget) : ''
+                budget: st.budget ? String(st.budget) : '',
+                check_in: st.check_in || '',
+                check_out: st.check_out || ''
               }))
             }))
           }));
@@ -122,7 +99,7 @@ const BuildItinerary = () => {
   const addSection = () => {
     setSections(prev => [
       ...prev,
-      { id: Date.now(), title: `Section ${prev.length + 1}`, description: '', from_date: '', to_date: '', budget: '' }
+      { id: Date.now() + Math.random(), title: `Section ${prev.length + 1}`, description: '', from_date: '', to_date: '', budget: '', cities: [] }
     ]);
   };
 
@@ -133,6 +110,60 @@ const BuildItinerary = () => {
 
   const updateSection = (id, field, value) => {
     setSections(prev => prev.map(s => s.id === id ? { ...s, [field]: value } : s));
+  };
+
+  const addCity = (sectionId) => {
+    setSections(prev => prev.map(s =>
+      s.id === sectionId ? { ...s, cities: [...s.cities, { id: Date.now() + Math.random(), city_name: '', stops: [] }] } : s
+    ));
+  };
+
+  const removeCity = (sectionId, cityId) => {
+    setSections(prev => prev.map(s =>
+      s.id === sectionId ? { ...s, cities: s.cities.filter(c => c.id !== cityId) } : s
+    ));
+  };
+
+  const updateCity = (sectionId, cityId, field, value) => {
+    setSections(prev => prev.map(s =>
+      s.id === sectionId ? {
+        ...s, cities: s.cities.map(c => c.id === cityId ? { ...c, [field]: value } : c)
+      } : s
+    ));
+  };
+
+  const addStop = (sectionId, cityId) => {
+    setSections(prev => prev.map(s =>
+      s.id === sectionId ? {
+        ...s, cities: s.cities.map(c =>
+          c.id === cityId ? {
+            ...c, stops: [...c.stops, { id: Date.now() + Math.random(), stop_name: '', stop_type: 'attraction', description: '', timing: '', budget: '', check_in: '', check_out: '' }]
+          } : c
+        )
+      } : s
+    ));
+  };
+
+  const removeStop = (sectionId, cityId, stopId) => {
+    setSections(prev => prev.map(s =>
+      s.id === sectionId ? {
+        ...s, cities: s.cities.map(c =>
+          c.id === cityId ? { ...c, stops: c.stops.filter(st => st.id !== stopId) } : c
+        )
+      } : s
+    ));
+  };
+
+  const updateStop = (sectionId, cityId, stopId, field, value) => {
+    setSections(prev => prev.map(s =>
+      s.id === sectionId ? {
+        ...s, cities: s.cities.map(c =>
+          c.id === cityId ? {
+            ...c, stops: c.stops.map(st => st.id === stopId ? { ...st, [field]: value } : st)
+          } : c
+        )
+      } : s
+    ));
   };
 
   const handleSave = async () => {
@@ -187,9 +218,57 @@ const BuildItinerary = () => {
     letterSpacing: '0.5px'
   };
 
+  const smallLabelStyle = {
+    fontSize: '12px',
+    fontWeight: '600',
+    color: 'var(--text-muted)',
+    marginBottom: '4px',
+    display: 'block',
+    textTransform: 'uppercase',
+    letterSpacing: '0.3px'
+  };
+
+  const removeBtnStyle = {
+    background: 'rgba(255, 100, 100, 0.12)',
+    border: '1px solid rgba(255, 100, 100, 0.2)',
+    borderRadius: '10px',
+    padding: '6px 14px',
+    color: '#e05c5c',
+    cursor: 'pointer',
+    fontSize: '13px',
+    fontWeight: '600',
+    transition: 'background 0.2s',
+    flexShrink: 0
+  };
+
+  const addSubtleBtnStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+    width: '100%',
+    padding: '14px',
+    background: 'transparent',
+    border: '2px dashed var(--border-light)',
+    borderRadius: '16px',
+    cursor: 'pointer',
+    fontSize: '14px',
+    fontWeight: '600',
+    color: 'var(--text-muted)',
+    fontFamily: "'Outfit', sans-serif",
+    transition: 'all 0.3s',
+  };
+
+  const cardInnerStyle = {
+    background: 'rgba(255,255,255,0.35)',
+    backdropFilter: 'blur(10px)',
+    border: '1px solid rgba(255,255,255,0.6)',
+    borderRadius: '20px',
+    padding: '20px',
+  };
+
   return (
     <div className="dash-wrapper">
-      {/* Navbar */}
       <nav className="dash-nav">
         <div className="dash-logo" onClick={() => navigate('/dashboard', { state: { user } })} style={{ cursor: 'pointer' }}>
           <h1>Traveloop</h1>
@@ -197,21 +276,14 @@ const BuildItinerary = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           {trip && (
             <span style={{ fontSize: '15px', color: 'var(--text-muted)', fontWeight: '600', background: 'var(--card-bg-lavender)', padding: '6px 14px', borderRadius: '100px' }}>
-              ✈️ {trip.destination}
+              {trip.destination}
             </span>
           )}
           <button onClick={() => navigate('/dashboard', { state: { user } })}
             style={{
-              padding: '8px 20px',
-              background: 'var(--card-bg)',
-              border: '1px solid var(--border-medium)',
-              borderRadius: '12px',
-              fontSize: '14px',
-              fontWeight: '600',
-              color: 'var(--text-muted)',
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-              transition: 'all 0.2s'
+              padding: '8px 20px', background: 'var(--card-bg)', border: '1px solid var(--border-medium)',
+              borderRadius: '12px', fontSize: '14px', fontWeight: '600', color: 'var(--text-muted)',
+              cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.2s'
             }}
             onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-main)'; e.currentTarget.style.borderColor = 'var(--input-focus)'; }}
             onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'var(--border-medium)'; }}>
@@ -224,7 +296,6 @@ const BuildItinerary = () => {
       </nav>
 
       <div className="dash-container">
-        {/* Header */}
         <header style={{ padding: '0 8px' }}>
           <h1 style={{ fontSize: '36px', fontWeight: '800', fontFamily: "'Outfit', sans-serif", color: 'var(--text-main)', letterSpacing: '-1px', margin: '0 0 8px 0' }}>
             Build Itinerary
@@ -234,23 +305,19 @@ const BuildItinerary = () => {
           </p>
         </header>
 
-        {/* Sections */}
+        {loading && (
+          <p style={{ color: 'var(--text-muted)', fontSize: '15px', marginTop: '16px' }}>Loading existing itinerary...</p>
+        )}
+
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '860px' }}>
           {sections.map((section, index) => (
-            <div
-              key={section.id}
-              style={{
-                background: 'var(--card-bg)',
-                border: '1px solid var(--border-card)',
-                borderRadius: '24px',
-                padding: '32px',
-                boxShadow: 'var(--shadow-card)',
-                position: 'relative',
-                transition: 'box-shadow 0.3s, transform 0.3s',
-              }}
+            <div key={section.id} style={{
+              background: 'var(--card-bg)', border: '1px solid var(--border-card)', borderRadius: '24px',
+              padding: '32px', boxShadow: 'var(--shadow-card)', position: 'relative',
+              transition: 'box-shadow 0.3s, transform 0.3s',
+            }}
               onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = 'var(--shadow-hover)'; }}
-              onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'var(--shadow-card)'; }}
-            >
+              onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'var(--shadow-card)'; }}>
               {/* Section Header */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -262,39 +329,14 @@ const BuildItinerary = () => {
                   }}>
                     {index + 1}
                   </div>
-                  <input
-                    value={section.title}
-                    onChange={e => updateSection(section.id, 'title', e.target.value)}
-                    style={{
-                      background: 'transparent',
-                      border: 'none',
-                      outline: 'none',
-                      fontSize: '20px',
-                      fontWeight: '700',
-                      fontFamily: "'Outfit', sans-serif",
-                      color: 'var(--text-main)',
-                      width: '260px'
-                    }}
-                  />
+                  <input value={section.title} onChange={e => updateSection(section.id, 'title', e.target.value)}
+                    style={{ background: 'transparent', border: 'none', outline: 'none', fontSize: '20px', fontWeight: '700', fontFamily: "'Outfit', sans-serif", color: 'var(--text-main)', width: '260px' }} />
                 </div>
                 {sections.length > 1 && (
-                  <button
-                    onClick={() => removeSection(section.id)}
-                    style={{
-                      background: 'rgba(255, 100, 100, 0.12)',
-                      border: '1px solid rgba(255, 100, 100, 0.2)',
-                      borderRadius: '10px',
-                      padding: '6px 14px',
-                      color: '#e05c5c',
-                      cursor: 'pointer',
-                      fontSize: '13px',
-                      fontWeight: '600',
-                      transition: 'background 0.2s'
-                    }}
+                  <button onClick={() => removeSection(section.id)} style={removeBtnStyle}
                     onMouseEnter={e => e.currentTarget.style.background = 'rgba(255, 100, 100, 0.22)'}
-                    onMouseLeave={e => e.currentTarget.style.background = 'rgba(255, 100, 100, 0.12)'}
-                  >
-                    Remove
+                    onMouseLeave={e => e.currentTarget.style.background = 'rgba(255, 100, 100, 0.12)'}>
+                    Remove Section
                   </button>
                 )}
               </div>
@@ -302,51 +344,31 @@ const BuildItinerary = () => {
               {/* Description */}
               <div style={{ marginBottom: '20px' }}>
                 <label style={labelStyle}>Description</label>
-                <textarea
-                  rows={3}
-                  value={section.description}
-                  onChange={e => updateSection(section.id, 'description', e.target.value)}
+                <textarea rows={3} value={section.description} onChange={e => updateSection(section.id, 'description', e.target.value)}
                   placeholder="All the necessary information about this section. This can be anything like travel details, hotel or any other activity..."
-                  style={{ ...inputStyle, resize: 'vertical', lineHeight: '1.6' }}
-                />
+                  style={{ ...inputStyle, resize: 'vertical', lineHeight: '1.6' }} />
               </div>
 
-              {/* Date Range + Budget Row */}
-              <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+              {/* Date Range + Budget */}
+              <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'flex-end', marginBottom: '24px' }}>
                 <div style={{ flex: '1 1 180px' }}>
                   <label style={labelStyle}>Date Range: From</label>
-                  <input
-                    type="date"
-                    value={section.from_date}
-                    onChange={e => updateSection(section.id, 'from_date', e.target.value)}
-                    style={inputStyle}
-                  />
+                  <input type="date" value={section.from_date} onChange={e => updateSection(section.id, 'from_date', e.target.value)} style={inputStyle} />
                 </div>
                 <div style={{ flex: '1 1 180px' }}>
                   <label style={labelStyle}>To</label>
-                  <input
-                    type="date"
-                    value={section.to_date}
-                    onChange={e => updateSection(section.id, 'to_date', e.target.value)}
-                    style={inputStyle}
-                  />
+                  <input type="date" value={section.to_date} onChange={e => updateSection(section.id, 'to_date', e.target.value)} style={inputStyle} />
                 </div>
                 <div style={{ flex: '1 1 180px' }}>
-                  <label style={labelStyle}>Budget of this section (₹)</label>
-                  <input
-                    type="number"
-                    value={section.budget}
-                    onChange={e => updateSection(section.id, 'budget', e.target.value)}
-                    placeholder="e.g. 15000"
-                    style={inputStyle}
-                  />
+                  <label style={labelStyle}>Budget (₹)</label>
+                  <input type="number" value={section.budget} onChange={e => updateSection(section.id, 'budget', e.target.value)} placeholder="e.g. 15000" style={inputStyle} />
                 </div>
               </div>
 
-              {/* Cities */}
+              {/* Cities & Stops */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-main)', fontFamily: "'Outfit', sans-serif" }}>🏙️ Cities & Stops</span>
+                  <span style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-main)', fontFamily: "'Outfit', sans-serif" }}>Cities & Stops</span>
                   <div style={{ flex: 1, height: '1px', background: 'var(--border-light)' }} />
                 </div>
 
@@ -354,13 +376,11 @@ const BuildItinerary = () => {
                   const cs = citySearch[city.id] || {};
                   return (
                     <div key={city.id} style={cardInnerStyle}>
-                      {/* City Header */}
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, position: 'relative' }}>
                           <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-muted)', marginTop: '12px' }}>#{cityIdx + 1}</span>
                           <div style={{ flex: 1, position: 'relative' }}>
-                            <input value={city.city_name}
-                              onChange={e => handleCitySearch(section.id, city.id, e.target.value)}
+                            <input value={city.city_name} onChange={e => handleCitySearch(section.id, city.id, e.target.value)}
                               onFocus={() => { if (cs.suggestions?.length > 0) setCitySearch(prev => ({ ...prev, [city.id]: { ...prev[city.id], show: true } })); }}
                               onBlur={() => setTimeout(() => setCitySearch(prev => ({ ...prev, [city.id]: { ...prev[city.id], show: false } })), 200)}
                               placeholder="Search for a city"
@@ -382,47 +402,30 @@ const BuildItinerary = () => {
                             )}
                           </div>
                         </div>
-                        <button onClick={() => removeCity(section.id, city.id)}
-                          style={{ ...removeBtnStyle, marginLeft: '10px' }}
+                        <button onClick={() => removeCity(section.id, city.id)} style={{ ...removeBtnStyle, marginLeft: '10px' }}
                           onMouseEnter={e => e.currentTarget.style.background = 'rgba(255, 100, 100, 0.22)'}
-                          onMouseLeave={e => e.currentTarget.style.background = 'rgba(255, 100, 100, 0.12)'}>
-                          Remove
-                        </button>
+                          onMouseLeave={e => e.currentTarget.style.background = 'rgba(255, 100, 100, 0.12)'}>Remove</button>
                       </div>
 
                       {/* Stops */}
                       {city.stops.map((stop, stopIdx) => (
-                        <div key={stop.id} style={{
-                          background: 'rgba(255,255,255,0.4)',
-                          borderRadius: '14px',
-                          padding: '16px',
-                          marginBottom: '12px',
-                          border: '1px solid rgba(255,255,255,0.6)'
-                        }}>
+                        <div key={stop.id} style={{ background: 'rgba(255,255,255,0.4)', borderRadius: '14px', padding: '16px', marginBottom: '12px', border: '1px solid rgba(255,255,255,0.6)' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                            <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-muted)' }}>
-                              Stop #{stopIdx + 1}
-                            </span>
-                            <button onClick={() => removeStop(section.id, city.id, stop.id)}
-                              style={{ ...removeBtnStyle, padding: '4px 10px', fontSize: '12px' }}
+                            <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-muted)' }}>Stop #{stopIdx + 1}</span>
+                            <button onClick={() => removeStop(section.id, city.id, stop.id)} style={{ ...removeBtnStyle, padding: '4px 10px', fontSize: '12px' }}
                               onMouseEnter={e => e.currentTarget.style.background = 'rgba(255, 100, 100, 0.22)'}
-                              onMouseLeave={e => e.currentTarget.style.background = 'rgba(255, 100, 100, 0.12)'}>
-                              Remove
-                            </button>
+                              onMouseLeave={e => e.currentTarget.style.background = 'rgba(255, 100, 100, 0.12)'}>Remove</button>
                           </div>
 
                           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
                             <div style={{ flex: '2 1 200px' }}>
                               <label style={smallLabelStyle}>Name</label>
-                              <input value={stop.stop_name}
-                                onChange={e => updateStop(section.id, city.id, stop.id, 'stop_name', e.target.value)}
-                                placeholder="e.g. Gateway of India"
-                                style={{ ...inputStyle, padding: '10px 14px' }} />
+                              <input value={stop.stop_name} onChange={e => updateStop(section.id, city.id, stop.id, 'stop_name', e.target.value)}
+                                placeholder="e.g. Gateway of India" style={{ ...inputStyle, padding: '10px 14px' }} />
                             </div>
                             <div style={{ flex: '1 1 140px' }}>
                               <label style={smallLabelStyle}>Type</label>
-                              <select value={stop.stop_type}
-                                onChange={e => updateStop(section.id, city.id, stop.id, 'stop_type', e.target.value)}
+                              <select value={stop.stop_type} onChange={e => updateStop(section.id, city.id, stop.id, 'stop_type', e.target.value)}
                                 style={{ ...inputStyle, padding: '10px 14px', cursor: 'pointer' }}>
                                 {STOP_TYPES.map(t => (
                                   <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>
@@ -433,128 +436,77 @@ const BuildItinerary = () => {
 
                           <div style={{ marginBottom: '12px' }}>
                             <label style={smallLabelStyle}>Description</label>
-                            <input value={stop.description}
-                              onChange={e => updateStop(section.id, city.id, stop.id, 'description', e.target.value)}
-                              placeholder="Brief description of this stop"
-                              style={{ ...inputStyle, padding: '10px 14px' }} />
+                            <input value={stop.description} onChange={e => updateStop(section.id, city.id, stop.id, 'description', e.target.value)}
+                              placeholder="Brief description of this stop" style={{ ...inputStyle, padding: '10px 14px' }} />
                           </div>
 
                           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                            <div style={{ flex: '1 1 160px' }}>
-                              <label style={smallLabelStyle}>Timing</label>
-                              <input value={stop.timing}
-                                onChange={e => updateStop(section.id, city.id, stop.id, 'timing', e.target.value)}
-                                placeholder="e.g. 10 AM - 6 PM"
-                                style={{ ...inputStyle, padding: '10px 14px' }} />
-                            </div>
+                            {stop.stop_type === 'hotel' ? (
+                              <>
+                                <div style={{ flex: '1 1 140px' }}>
+                                  <label style={smallLabelStyle}>Check-in</label>
+                                  <input type="time" value={stop.check_in}
+                                    onChange={e => updateStop(section.id, city.id, stop.id, 'check_in', e.target.value)}
+                                    style={{ ...inputStyle, padding: '10px 14px' }} />
+                                </div>
+                                <div style={{ flex: '1 1 140px' }}>
+                                  <label style={smallLabelStyle}>Check-out</label>
+                                  <input type="time" value={stop.check_out}
+                                    onChange={e => updateStop(section.id, city.id, stop.id, 'check_out', e.target.value)}
+                                    style={{ ...inputStyle, padding: '10px 14px' }} />
+                                </div>
+                              </>
+                            ) : (
+                              <div style={{ flex: '1 1 160px' }}>
+                                <label style={smallLabelStyle}>Timing</label>
+                                <input value={stop.timing} onChange={e => updateStop(section.id, city.id, stop.id, 'timing', e.target.value)}
+                                  placeholder="e.g. 10 AM - 6 PM" style={{ ...inputStyle, padding: '10px 14px' }} />
+                              </div>
+                            )}
                             <div style={{ flex: '1 1 140px' }}>
                               <label style={smallLabelStyle}>Budget (₹)</label>
-                              <input type="number" value={stop.budget}
-                                onChange={e => updateStop(section.id, city.id, stop.id, 'budget', e.target.value)}
-                                placeholder="e.g. 500"
-                                style={{ ...inputStyle, padding: '10px 14px' }} />
+                              <input type="number" value={stop.budget} onChange={e => updateStop(section.id, city.id, stop.id, 'budget', e.target.value)}
+                                placeholder="e.g. 500" style={{ ...inputStyle, padding: '10px 14px' }} />
                             </div>
                           </div>
                         </div>
                       ))}
 
-                      {/* Add Stop */}
-                      <button onClick={() => addStop(section.id, city.id)}
-                        style={addSubtleBtnStyle}
+                      <button onClick={() => addStop(section.id, city.id)} style={addSubtleBtnStyle}
                         onMouseEnter={e => { e.currentTarget.style.background = 'rgba(162, 210, 255, 0.15)'; e.currentTarget.style.color = 'var(--text-main)'; }}
                         onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}>
-                        <span style={{ fontSize: '18px' }}>＋</span>
                         Add Stop
                       </button>
                     </div>
                   );
                 })}
 
-                {/* Add City */}
-                <button onClick={() => addCity(section.id)}
-                  style={addSubtleBtnStyle}
+                <button onClick={() => addCity(section.id)} style={addSubtleBtnStyle}
                   onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255, 175, 204, 0.12)'; e.currentTarget.style.borderColor = 'var(--baby-pink, #ffafcc)'; e.currentTarget.style.color = 'var(--text-main)'; }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'var(--border-light)'; e.currentTarget.style.color = 'var(--text-muted)'; }}>
-                  <span style={{ fontSize: '18px' }}>＋</span>
                   Add City
                 </button>
               </div>
             </div>
           ))}
 
-          {/* Add Section Button */}
-          <button
-            onClick={addSection}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '10px',
-              width: '100%',
-              maxWidth: '860px',
-              padding: '20px',
-              background: 'var(--card-bg)',
-              border: '2px dashed var(--border-medium)',
-              borderRadius: '24px',
-              cursor: 'pointer',
-              fontSize: '17px',
-              fontWeight: '700',
-              color: 'var(--text-muted)',
-              fontFamily: "'Outfit', sans-serif",
-              transition: 'all 0.3s',
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.background = 'var(--accent-purple-bg)';
-              e.currentTarget.style.borderColor = 'var(--accent-purple)';
-              e.currentTarget.style.color = 'var(--accent-purple-text)';
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.background = 'var(--card-bg)';
-              e.currentTarget.style.borderColor = 'var(--border-medium)';
-              e.currentTarget.style.color = 'var(--text-muted)';
-            }}
-          >
-            <span style={{ fontSize: '22px' }}>＋</span>
+          <button onClick={addSection}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', width: '100%', maxWidth: '860px', padding: '20px', background: 'var(--card-bg)', border: '2px dashed var(--border-medium)', borderRadius: '24px', cursor: 'pointer', fontSize: '17px', fontWeight: '700', color: 'var(--text-muted)', fontFamily: "'Outfit', sans-serif", transition: 'all 0.3s' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'var(--accent-purple-bg)'; e.currentTarget.style.borderColor = 'var(--accent-purple)'; e.currentTarget.style.color = 'var(--accent-purple-text)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'var(--card-bg)'; e.currentTarget.style.borderColor = 'var(--border-medium)'; e.currentTarget.style.color = 'var(--text-muted)'; }}>
             Add another Section
           </button>
 
-          {/* Save Button */}
           <div style={{ display: 'flex', gap: '16px', maxWidth: '860px' }}>
-            <button
-              onClick={() => navigate('/dashboard', { state: { user } })}
-              style={{
-                flex: 1,
-                padding: '16px',
-                background: 'var(--card-bg)',
-                border: '1px solid var(--border-medium)',
-                borderRadius: '16px',
-                color: 'var(--text-muted)',
-                fontSize: '16px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-                transition: 'all 0.2s'
-              }}
+            <button onClick={() => navigate('/dashboard', { state: { user } })}
+              style={{ flex: 1, padding: '16px', background: 'var(--card-bg)', border: '1px solid var(--border-medium)', borderRadius: '16px', color: 'var(--text-muted)', fontSize: '16px', fontWeight: '600', cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.2s' }}
               onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-color)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'var(--card-bg)'; }}
-            >
+              onMouseLeave={e => { e.currentTarget.style.background = 'var(--card-bg)'; }}>
               Cancel
             </button>
-            <button
-              onClick={handleSave}
-              disabled={saving || saved}
-              className="login-btn"
-              style={{
-                flex: 2,
-                padding: '16px',
-                fontSize: '17px',
-                borderRadius: '16px',
-                boxShadow: 'var(--cta-shadow)',
-                opacity: saving || saved ? 0.8 : 1,
-                cursor: saving || saved ? 'default' : 'pointer'
-              }}
-            >
-              {saved ? '✅ Saved! Redirecting...' : saving ? 'Saving...' : 'Save Itinerary'}
+            <button onClick={handleSave} disabled={saving || saved} className="login-btn"
+              style={{ flex: 2, padding: '16px', fontSize: '17px', borderRadius: '16px', boxShadow: 'var(--cta-shadow)', opacity: saving || saved ? 0.8 : 1, cursor: saving || saved ? 'default' : 'pointer' }}>
+              {saved ? 'Saved! Redirecting...' : saving ? 'Saving...' : 'Save Itinerary'}
             </button>
           </div>
         </div>

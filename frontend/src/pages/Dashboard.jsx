@@ -93,7 +93,7 @@ const Dashboard = () => {
             onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-main)'; e.currentTarget.style.background = 'rgba(255,255,255,0.6)'; }}
             onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = 'var(--card-bg)'; }}
           >
-            🗺️ My Trips
+            My Trips
           </button>
           <button
             onClick={() => navigate('/community', { state: { user } })}
@@ -262,7 +262,7 @@ const Dashboard = () => {
                           onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
                           onMouseLeave={e => e.currentTarget.style.opacity = '1'}
                         >
-                          📋 Build Itinerary
+                          Build Itinerary
                         </button>
                       </div>
                     </div>
