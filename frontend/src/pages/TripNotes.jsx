@@ -254,18 +254,18 @@ const TripNotes = () => {
         </div>
 
         <div className="community-content">
-          <h2 className="community-title">Trip Notes</h2>
+          <h2 className="community-title" style={{ color: '#000' }}>Trip Notes</h2>
 
           <div className="notes-utility-row" style={{ display: 'flex', gap: '20px', alignItems: 'center', marginBottom: '30px' }}>
             <div className="trip-selector-wrapper" style={{ flex: 1 }}>
               <select 
                 className="community-search-input" 
-                style={{ width: '100%', padding: '12px 20px', background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid rgba(255,255,255,0.1)' }}
+                style={{ width: '100%', padding: '12px 20px', background: 'rgba(0,0,0,0.05)', color: '#000', border: '1px solid rgba(0,0,0,0.1)' }}
                 value={selectedTripId}
                 onChange={(e) => setSelectedTripId(e.target.value)}
               >
                 {trips.map(trip => (
-                  <option key={trip.id} value={trip.id} style={{ background: '#1e293b' }}>
+                  <option key={trip.id} value={trip.id} style={{ background: '#fff', color: '#000' }}>
                     Trip: {trip.destination}
                   </option>
                 ))}
@@ -298,13 +298,13 @@ const TripNotes = () => {
               filteredNotes.map(note => (
                 <div key={note.id} className="post-card" style={{ padding: '24px', display: 'block' }}>
                   <div className="note-card-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                    <h4 style={{ margin: 0, fontSize: '18px', color: '#fff' }}>{note.title}</h4>
+                    <h4 style={{ margin: 0, fontSize: '18px', color: '#000', fontWeight: '700' }}>{note.title}</h4>
                     <div className="note-actions" style={{ display: 'flex', gap: '12px' }}>
                       <button onClick={() => openEditModal(note)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px' }}>✏️</button>
                       <button onClick={() => handleDeleteNote(note.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px' }}>🗑️</button>
                     </div>
                   </div>
-                  <div className="note-card-content" style={{ color: 'var(--text-muted)', marginBottom: '16px', lineHeight: '1.6' }}>
+                  <div className="note-card-content" style={{ color: '#000', fontWeight: '500', marginBottom: '16px', lineHeight: '1.6' }}>
                     {note.content.split('\n').map((line, i) => <p key={i} style={{ margin: '0 0 8px 0' }}>{line}</p>)}
                   </div>
                   <div className="note-card-footer" style={{ fontSize: '13px', color: 'var(--accent-purple)', fontWeight: '600' }}>

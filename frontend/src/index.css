@@ -1447,7 +1447,7 @@ body::after {
     width: 100%;
     background: transparent;
     border: none;
-    color: #fff;
+    color: #000;
     font-size: 16px;
     outline: none;
     padding: 8px 0;
@@ -1463,7 +1463,7 @@ body::after {
     border-radius: 100px;
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
-    color: #fff;
+    color: #000;
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
@@ -1485,7 +1485,7 @@ body::after {
 .community-title {
     font-size: 28px;
     font-weight: 800;
-    color: #fff;
+    color: #000;
     font-family: 'Outfit', sans-serif;
     margin-bottom: 8px;
 }
@@ -1545,7 +1545,7 @@ body::after {
 
 .post-username {
     font-weight: 700;
-    color: #fff;
+    color: #000;
     font-size: 16px;
 }
 
@@ -1555,7 +1555,7 @@ body::after {
 }
 
 .post-body p {
-    color: rgba(255, 255, 255, 0.9);
+    color: rgba(0, 0, 0, 0.9);
     line-height: 1.6;
     font-size: 15px;
     margin: 0;
