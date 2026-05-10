@@ -1,6 +1,33 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
+const STOP_TYPES = ['attraction', 'restaurant', 'hotel', 'activity', 'other'];
+
+const createStop = () => ({
+  id: Date.now() + Math.random(),
+  stop_name: '',
+  stop_type: 'attraction',
+  description: '',
+  timing: '',
+  budget: ''
+});
+
+const createCity = () => ({
+  id: Date.now() + Math.random(),
+  city_name: '',
+  stops: []
+});
+
+const createSection = (num) => ({
+  id: Date.now() + Math.random(),
+  title: `Section ${num}`,
+  description: '',
+  from_date: '',
+  to_date: '',
+  budget: '',
+  cities: []
+});
+
 const BuildItinerary = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -12,6 +39,73 @@ const BuildItinerary = () => {
   ]);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [citySearch, setCitySearch] = useState({});
+  const debounceRef = useRef({});
+
+  useEffect(() => {
+    if (trip?.id) loadItinerary();
+  }, []);
+
+  const loadItinerary = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`http://localhost:5000/api/itinerary/${trip.id}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.length > 0) {
+          const mapped = data.map(s => ({
+            ...s,
+            id: s.id,
+            from_date: s.from_date ? s.from_date.slice(0, 10) : '',
+            to_date: s.to_date ? s.to_date.slice(0, 10) : '',
+            budget: s.budget ? String(s.budget) : '',
+            cities: (s.cities || []).map(c => ({
+              ...c,
+              id: c.id,
+              stops: (c.stops || []).map(st => ({
+                ...st,
+                id: st.id,
+                budget: st.budget ? String(st.budget) : ''
+              }))
+            }))
+          }));
+          setSections(mapped);
+        }
+      }
+    } catch (err) {
+      console.error('Load itinerary error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCitySearch = (sectionId, cityId, value) => {
+    updateCity(sectionId, cityId, 'city_name', value);
+
+    if (debounceRef.current[cityId]) clearTimeout(debounceRef.current[cityId]);
+
+    if (value.trim().length < 2) {
+      setCitySearch(prev => ({ ...prev, [cityId]: { suggestions: [], show: false, isSearching: false } }));
+      return;
+    }
+
+    debounceRef.current[cityId] = setTimeout(async () => {
+      setCitySearch(prev => ({ ...prev, [cityId]: { ...prev[cityId], isSearching: true } }));
+      try {
+        const res = await fetch(`http://localhost:5000/api/places/search?q=${encodeURIComponent(value)}`);
+        const data = await res.json();
+        setCitySearch(prev => ({ ...prev, [cityId]: { suggestions: data, show: data.length > 0, isSearching: false } }));
+      } catch {
+        setCitySearch(prev => ({ ...prev, [cityId]: { suggestions: [], show: false, isSearching: false } }));
+      }
+    }, 400);
+  };
+
+  const selectCity = (sectionId, cityId, place) => {
+    updateCity(sectionId, cityId, 'city_name', place.name);
+    setCitySearch(prev => ({ ...prev, [cityId]: { ...prev[cityId], show: false } }));
+  };
 
   if (!user) {
     return (
@@ -100,13 +194,27 @@ const BuildItinerary = () => {
         <div className="dash-logo" onClick={() => navigate('/dashboard', { state: { user } })} style={{ cursor: 'pointer' }}>
           <h1>Traveloop</h1>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           {trip && (
-            <span style={{ fontSize: '15px', color: 'var(--text-muted)', fontWeight: '500' }}>
+            <span style={{ fontSize: '15px', color: 'var(--text-muted)', fontWeight: '600', background: 'var(--card-bg-lavender)', padding: '6px 14px', borderRadius: '100px' }}>
               ✈️ {trip.destination}
             </span>
           )}
-          <button onClick={() => navigate('/dashboard', { state: { user } })} className="login-btn" style={{ padding: '8px 20px', fontSize: '14px' }}>
+          <button onClick={() => navigate('/dashboard', { state: { user } })}
+            style={{
+              padding: '8px 20px',
+              background: 'var(--card-bg)',
+              border: '1px solid var(--border-medium)',
+              borderRadius: '12px',
+              fontSize: '14px',
+              fontWeight: '600',
+              color: 'var(--text-muted)',
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-main)'; e.currentTarget.style.borderColor = 'var(--input-focus)'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'var(--border-medium)'; }}>
             Dashboard
           </button>
           <div className="dash-profile">
@@ -133,15 +241,15 @@ const BuildItinerary = () => {
               key={section.id}
               style={{
                 background: 'var(--card-bg)',
-                backdropFilter: 'blur(20px) saturate(150%)',
-                WebkitBackdropFilter: 'blur(20px) saturate(150%)',
-                border: '1px solid var(--border-medium)',
-                borderRadius: '28px',
+                border: '1px solid var(--border-card)',
+                borderRadius: '24px',
                 padding: '32px',
-                boxShadow: 'var(--shadow-soft)',
+                boxShadow: 'var(--shadow-card)',
                 position: 'relative',
-                transition: 'box-shadow 0.3s',
+                transition: 'box-shadow 0.3s, transform 0.3s',
               }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = 'var(--shadow-hover)'; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'var(--shadow-card)'; }}
             >
               {/* Section Header */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -234,6 +342,143 @@ const BuildItinerary = () => {
                   />
                 </div>
               </div>
+
+              {/* Cities */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <span style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-main)', fontFamily: "'Outfit', sans-serif" }}>🏙️ Cities & Stops</span>
+                  <div style={{ flex: 1, height: '1px', background: 'var(--border-light)' }} />
+                </div>
+
+                {section.cities.map((city, cityIdx) => {
+                  const cs = citySearch[city.id] || {};
+                  return (
+                    <div key={city.id} style={cardInnerStyle}>
+                      {/* City Header */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, position: 'relative' }}>
+                          <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-muted)', marginTop: '12px' }}>#{cityIdx + 1}</span>
+                          <div style={{ flex: 1, position: 'relative' }}>
+                            <input value={city.city_name}
+                              onChange={e => handleCitySearch(section.id, city.id, e.target.value)}
+                              onFocus={() => { if (cs.suggestions?.length > 0) setCitySearch(prev => ({ ...prev, [city.id]: { ...prev[city.id], show: true } })); }}
+                              onBlur={() => setTimeout(() => setCitySearch(prev => ({ ...prev, [city.id]: { ...prev[city.id], show: false } })), 200)}
+                              placeholder="Search for a city"
+                              style={{ ...inputStyle, padding: '10px 14px', fontSize: '15px', fontWeight: '600' }} />
+                            {cs.isSearching && (
+                              <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'var(--card-bg)', border: '1px solid var(--border-medium)', borderRadius: '12px', marginTop: '4px', padding: '12px 16px', zIndex: 10, color: 'var(--text-muted)', fontSize: '14px', backdropFilter: 'blur(20px)' }}>Searching...</div>
+                            )}
+                            {cs.show && cs.suggestions?.length > 0 && (
+                              <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'var(--card-bg)', border: '1px solid var(--border-medium)', borderRadius: '16px', marginTop: '4px', maxHeight: '200px', overflowY: 'auto', zIndex: 10, boxShadow: 'var(--shadow-hover)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)' }}>
+                                {cs.suggestions.map((place, idx) => (
+                                  <div key={idx} onClick={() => selectCity(section.id, city.id, place)}
+                                    style={{ padding: '12px 16px', cursor: 'pointer', borderBottom: idx !== cs.suggestions.length - 1 ? '1px solid var(--border-light)' : 'none' }}
+                                    onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.4)'}
+                                    onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
+                                    <div style={{ fontWeight: '500', color: 'var(--text-main)' }}>{place.name}</div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <button onClick={() => removeCity(section.id, city.id)}
+                          style={{ ...removeBtnStyle, marginLeft: '10px' }}
+                          onMouseEnter={e => e.currentTarget.style.background = 'rgba(255, 100, 100, 0.22)'}
+                          onMouseLeave={e => e.currentTarget.style.background = 'rgba(255, 100, 100, 0.12)'}>
+                          Remove
+                        </button>
+                      </div>
+
+                      {/* Stops */}
+                      {city.stops.map((stop, stopIdx) => (
+                        <div key={stop.id} style={{
+                          background: 'rgba(255,255,255,0.4)',
+                          borderRadius: '14px',
+                          padding: '16px',
+                          marginBottom: '12px',
+                          border: '1px solid rgba(255,255,255,0.6)'
+                        }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                            <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-muted)' }}>
+                              Stop #{stopIdx + 1}
+                            </span>
+                            <button onClick={() => removeStop(section.id, city.id, stop.id)}
+                              style={{ ...removeBtnStyle, padding: '4px 10px', fontSize: '12px' }}
+                              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255, 100, 100, 0.22)'}
+                              onMouseLeave={e => e.currentTarget.style.background = 'rgba(255, 100, 100, 0.12)'}>
+                              Remove
+                            </button>
+                          </div>
+
+                          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
+                            <div style={{ flex: '2 1 200px' }}>
+                              <label style={smallLabelStyle}>Name</label>
+                              <input value={stop.stop_name}
+                                onChange={e => updateStop(section.id, city.id, stop.id, 'stop_name', e.target.value)}
+                                placeholder="e.g. Gateway of India"
+                                style={{ ...inputStyle, padding: '10px 14px' }} />
+                            </div>
+                            <div style={{ flex: '1 1 140px' }}>
+                              <label style={smallLabelStyle}>Type</label>
+                              <select value={stop.stop_type}
+                                onChange={e => updateStop(section.id, city.id, stop.id, 'stop_type', e.target.value)}
+                                style={{ ...inputStyle, padding: '10px 14px', cursor: 'pointer' }}>
+                                {STOP_TYPES.map(t => (
+                                  <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+
+                          <div style={{ marginBottom: '12px' }}>
+                            <label style={smallLabelStyle}>Description</label>
+                            <input value={stop.description}
+                              onChange={e => updateStop(section.id, city.id, stop.id, 'description', e.target.value)}
+                              placeholder="Brief description of this stop"
+                              style={{ ...inputStyle, padding: '10px 14px' }} />
+                          </div>
+
+                          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                            <div style={{ flex: '1 1 160px' }}>
+                              <label style={smallLabelStyle}>Timing</label>
+                              <input value={stop.timing}
+                                onChange={e => updateStop(section.id, city.id, stop.id, 'timing', e.target.value)}
+                                placeholder="e.g. 10 AM - 6 PM"
+                                style={{ ...inputStyle, padding: '10px 14px' }} />
+                            </div>
+                            <div style={{ flex: '1 1 140px' }}>
+                              <label style={smallLabelStyle}>Budget (₹)</label>
+                              <input type="number" value={stop.budget}
+                                onChange={e => updateStop(section.id, city.id, stop.id, 'budget', e.target.value)}
+                                placeholder="e.g. 500"
+                                style={{ ...inputStyle, padding: '10px 14px' }} />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+
+                      {/* Add Stop */}
+                      <button onClick={() => addStop(section.id, city.id)}
+                        style={addSubtleBtnStyle}
+                        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(162, 210, 255, 0.15)'; e.currentTarget.style.color = 'var(--text-main)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}>
+                        <span style={{ fontSize: '18px' }}>＋</span>
+                        Add Stop
+                      </button>
+                    </div>
+                  );
+                })}
+
+                {/* Add City */}
+                <button onClick={() => addCity(section.id)}
+                  style={addSubtleBtnStyle}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255, 175, 204, 0.12)'; e.currentTarget.style.borderColor = 'var(--baby-pink, #ffafcc)'; e.currentTarget.style.color = 'var(--text-main)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'var(--border-light)'; e.currentTarget.style.color = 'var(--text-muted)'; }}>
+                  <span style={{ fontSize: '18px' }}>＋</span>
+                  Add City
+                </button>
+              </div>
             </div>
           ))}
 
@@ -249,10 +494,8 @@ const BuildItinerary = () => {
               maxWidth: '860px',
               padding: '20px',
               background: 'var(--card-bg)',
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
               border: '2px dashed var(--border-medium)',
-              borderRadius: '28px',
+              borderRadius: '24px',
               cursor: 'pointer',
               fontSize: '17px',
               fontWeight: '700',
@@ -261,9 +504,9 @@ const BuildItinerary = () => {
               transition: 'all 0.3s',
             }}
             onMouseEnter={e => {
-              e.currentTarget.style.background = 'rgba(255, 175, 204, 0.15)';
-              e.currentTarget.style.borderColor = 'var(--baby-pink, #ffafcc)';
-              e.currentTarget.style.color = 'var(--text-main)';
+              e.currentTarget.style.background = 'var(--accent-purple-bg)';
+              e.currentTarget.style.borderColor = 'var(--accent-purple)';
+              e.currentTarget.style.color = 'var(--accent-purple-text)';
             }}
             onMouseLeave={e => {
               e.currentTarget.style.background = 'var(--card-bg)';
@@ -283,7 +526,6 @@ const BuildItinerary = () => {
                 flex: 1,
                 padding: '16px',
                 background: 'var(--card-bg)',
-                backdropFilter: 'blur(20px)',
                 border: '1px solid var(--border-medium)',
                 borderRadius: '16px',
                 color: 'var(--text-muted)',
@@ -293,6 +535,8 @@ const BuildItinerary = () => {
                 fontFamily: 'inherit',
                 transition: 'all 0.2s'
               }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-color)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'var(--card-bg)'; }}
             >
               Cancel
             </button>
