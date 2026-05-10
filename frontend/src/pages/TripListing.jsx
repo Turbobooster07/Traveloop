@@ -344,6 +344,11 @@ const TripListing = () => {
                               📋 Itinerary
                             </button>
                             <button
+                              onClick={e => { e.stopPropagation(); navigate('/day-itinerary', { state: { user, trip } }); }}
+                              style={{ padding: '8px 18px', background: 'var(--accent-purple-bg)', color: 'var(--accent-purple-text)', border: 'none', borderRadius: '12px', fontSize: '13px', fontWeight: '700', cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
+                              📅 Day Plan
+                            </button>
+                            <button
                               onClick={e => { e.stopPropagation(); navigate('/plan-trip', { state: { user } }); }}
                               style={{ padding: '8px 18px', background: 'var(--card-bg)', color: 'var(--text-muted)', border: '1px solid var(--border-medium)', borderRadius: '12px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
                               ✏️ Edit
