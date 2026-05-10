@@ -6,7 +6,7 @@ const crypto = require('crypto');
 const https = require('https');
 require('dotenv').config();
 
-const { userQueries, tripQueries } = require('./database/queries');
+const { userQueries, tripQueries, communityQueries } = require('./database/queries');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -506,6 +506,104 @@ app.get('/api/recommendations', (req, res) => {
   res.json(recommendations);
 });
 
+// Community Endpoints
+app.get('/api/community/posts', async (req, res) => {
+  try {
+    const result = await pool.query(communityQueries.getAllPosts);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Get community posts error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/api/community/posts', async (req, res) => {
+  try {
+    const { user_id, content, tags } = req.body;
+    const result = await pool.query(communityQueries.createPost, [user_id, content, tags]);
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error('Create post error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Seed Community Data (if empty)
+const seedCommunity = async () => {
+  try {
+    const check = await pool.query('SELECT count(*) FROM community_posts');
+    if (parseInt(check.rows[0].count) === 0) {
+      const users = await pool.query('SELECT id FROM users LIMIT 5');
+      if (users.rows.length > 0) {
+        const posts = [
+          ['Exploring the hidden gems of Kyoto was a dream come true! The temples are so serene.', 'Kyoto, Serene, Japan'],
+          ['Bali never fails to amaze. The beaches and the culture are unmatched.', 'Bali, Beach, Culture'],
+          ['Just back from Paris. The food is to die for!', 'Paris, Foodie, Travel'],
+          ['A weekend in the mountains is all I needed.', 'Mountains, Nature, Weekend'],
+          ['The Northern Lights in Norway were breathtaking.', 'Norway, NorthernLights, Magic']
+        ];
+        for (let i = 0; i < posts.length; i++) {
+          const userId = users.rows[i % users.rows.length].id;
+          await pool.query(communityQueries.createPost, [userId, posts[i][0], posts[i][1]]);
+        }
+        console.log('Community data seeded');
+      }
+    }
+  } catch (err) {
+    console.error('Seed error:', err);
+  }
+};
+seedCommunity();
+
+// --- Community Likes ---
+app.post('/api/community/posts/:postId/like', async (req, res) => {
+  const { postId } = req.params;
+  const { user_id } = req.body;
+  try {
+    await pool.query(
+      'INSERT INTO community_likes (post_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+      [postId, user_id]
+    );
+    res.status(200).json({ message: 'Post liked' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to like post' });
+  }
+});
+
+// --- Community Comments ---
+app.get('/api/community/posts/:postId/comments', async (req, res) => {
+  const { postId } = req.params;
+  try {
+    const result = await pool.query(`
+      SELECT c.id, c.content, c.created_at, u.first_name, u.last_name, u.profile_pic
+      FROM community_comments c
+      JOIN users u ON c.user_id = u.id
+      WHERE c.post_id = $1
+      ORDER BY c.created_at ASC
+    `, [postId]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch comments' });
+  }
+});
+
+app.post('/api/community/posts/:postId/comments', async (req, res) => {
+  const { postId } = req.params;
+  const { user_id, content } = req.body;
+  try {
+    const result = await pool.query(
+      'INSERT INTO community_comments (post_id, user_id, content) VALUES ($1, $2, $3) RETURNING *',
+      [postId, user_id, content]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to add comment' });
+  }
+});
+
 // ==================== ADMIN API ENDPOINTS ====================
 
 // Admin: Get all users with trip counts
@@ -662,7 +760,61 @@ app.get('/api/admin/stats', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
+});
+
+// --- Trip Notes ---
+app.get('/api/notes/:tripId', async (req, res) => {
+  const { tripId } = req.params;
+  try {
+    const result = await pool.query(
+      'SELECT * FROM trip_notes WHERE trip_id = $1 ORDER BY day_number ASC, created_at DESC',
+      [tripId]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch notes' });
+  }
+});
+
+app.post('/api/notes', async (req, res) => {
+  const { trip_id, title, content, day_number, stop_name, note_date } = req.body;
+  try {
+    const result = await pool.query(
+      'INSERT INTO trip_notes (trip_id, title, content, day_number, stop_name, note_date) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+      [trip_id, title, content, day_number, stop_name, note_date]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to create note' });
+  }
+});
+
+app.put('/api/notes/:id', async (req, res) => {
+  const { id } = req.params;
+  const { title, content, day_number, stop_name, note_date } = req.body;
+  try {
+    const result = await pool.query(
+      'UPDATE trip_notes SET title = $1, content = $2, day_number = $3, stop_name = $4, note_date = $5, updated_at = CURRENT_TIMESTAMP WHERE id = $6 RETURNING *',
+      [title, content, day_number, stop_name, note_date, id]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to update note' });
+  }
+});
+
+app.delete('/api/notes/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    await pool.query('DELETE FROM trip_notes WHERE id = $1', [id]);
+    res.status(200).json({ message: 'Note deleted' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to delete note' });
+  }
 });

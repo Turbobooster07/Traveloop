@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS users (
     city VARCHAR(100),
     country VARCHAR(100),
     additional_info TEXT,
+    profile_pic TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -28,7 +29,7 @@ CREATE TRIGGER update_user_modtime BEFORE
 UPDATE ON users FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Trips Table
-CREATE TABLE IF NOT EXISTS trips (
+CREATE TABLE IF NOT EXISTS trips (  
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
     destination VARCHAR(255) NOT NULL,
@@ -48,6 +49,51 @@ DROP TRIGGER IF EXISTS update_trip_modtime ON trips;
 CREATE TRIGGER update_trip_modtime BEFORE
 UPDATE ON trips FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+-- Community Posts Table
+CREATE TABLE IF NOT EXISTS community_posts (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    content TEXT NOT NULL,
+    tags VARCHAR(255),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Community Likes Table (New)
+CREATE TABLE IF NOT EXISTS community_likes (
+    id SERIAL PRIMARY KEY,
+    post_id INTEGER REFERENCES community_posts(id) ON DELETE CASCADE,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(post_id, user_id)
+);
+
+-- Community Comments Table (New)
+CREATE TABLE IF NOT EXISTS community_comments (
+    id SERIAL PRIMARY KEY,
+    post_id INTEGER REFERENCES community_posts(id) ON DELETE CASCADE,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Trip Notes Table
+CREATE TABLE IF NOT EXISTS trip_notes (
+    id SERIAL PRIMARY KEY,
+    trip_id INTEGER REFERENCES trips(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    content TEXT,
+    day_number INTEGER,
+    stop_name VARCHAR(100),
+    note_date DATE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes for faster queries
+CREATE INDEX IF NOT EXISTS idx_posts_user_id ON community_posts(user_id);
+CREATE INDEX IF NOT EXISTS idx_likes_post_id ON community_likes(post_id);
+CREATE INDEX IF NOT EXISTS idx_comments_post_id ON community_comments(post_id);
+
 -- Packing Items Table
 CREATE TABLE IF NOT EXISTS packing_items (
     id SERIAL PRIMARY KEY,
@@ -59,3 +105,4 @@ CREATE TABLE IF NOT EXISTS packing_items (
 );
 
 CREATE INDEX IF NOT EXISTS idx_packing_trip_id ON packing_items(trip_id);
+CREATE INDEX IF NOT EXISTS idx_notes_trip_id ON trip_notes(trip_id);
