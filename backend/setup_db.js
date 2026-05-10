@@ -13,6 +13,7 @@ const pool = new Pool({
 const schema = fs.readFileSync('./database/schema.sql', 'utf8');
 
 pool.query(schema)
+  .then(() => pool.query('ALTER TABLE trips ADD COLUMN IF NOT EXISTS description TEXT;'))
   .then(() => {
     console.log('Schema applied successfully');
     process.exit(0);

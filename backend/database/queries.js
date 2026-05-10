@@ -64,14 +64,14 @@ const userQueries = {
 const tripQueries = {
   // Create a new trip for a user
   createTrip: `
-    INSERT INTO trips (user_id, destination, start_date, end_date, status)
-    VALUES ($1, $2, $3, $4, $5)
-    RETURNING id, destination, start_date, end_date, status, created_at
+    INSERT INTO trips (user_id, destination, start_date, end_date, status, description)
+    VALUES ($1, $2, $3, $4, $5, $6)
+    RETURNING id, destination, start_date, end_date, status, description, created_at
   `,
   
   // Get all trips for a specific user
   getTripsByUser: `
-    SELECT id, destination, start_date, end_date, status, created_at
+    SELECT id, destination, start_date, end_date, status, description, created_at
     FROM trips
     WHERE user_id = $1
     ORDER BY start_date ASC

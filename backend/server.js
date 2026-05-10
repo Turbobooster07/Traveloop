@@ -3,6 +3,7 @@ const cors = require('cors');
 const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
+const https = require('https');
 require('dotenv').config();
 
 const { userQueries, tripQueries } = require('./database/queries');
@@ -106,17 +107,49 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
+// Nominatim place search proxy
+app.get('/api/places/search', async (req, res) => {
+  const { q } = req.query;
+  if (!q || q.trim().length < 2) return res.json([]);
+
+  const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&addressdetails=1&limit=8&countrycodes=in`;
+
+  const options = {
+    headers: {
+      'User-Agent': 'Traveloop/1.0 (travel planning app)',
+      'Accept-Language': 'en'
+    }
+  };
+
+  https.get(url, options, (apiRes) => {
+    let data = '';
+    apiRes.on('data', chunk => data += chunk);
+    apiRes.on('end', () => {
+      try {
+        const places = JSON.parse(data);
+        const results = places.map(p => ({
+          name: p.display_name.split(',').slice(0, 3).join(',').trim(),
+          full: p.display_name
+        }));
+        res.json(results);
+      } catch (e) {
+        res.json([]);
+      }
+    });
+  }).on('error', () => res.json([]));
+});
+
 // Create a new trip
 app.post('/api/trips', async (req, res) => {
   try {
-    const { user_id, destination, start_date, end_date, status } = req.body;
+    const { user_id, destination, start_date, end_date, status, description } = req.body;
     
     if (!user_id || !destination || !start_date || !end_date) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
     const result = await pool.query(tripQueries.createTrip, [
-      user_id, destination, start_date, end_date, status || 'Upcoming'
+      user_id, destination, start_date, end_date, status || 'Upcoming', description || null
     ]);
     
     res.status(201).json(result.rows[0]);
@@ -168,6 +201,41 @@ app.get('/api/recommendations', (req, res) => {
       location: 'Kyoto, Japan',
       description: 'Discover the serene beauty of ancient temples.',
       image: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&q=80&w=600&h=400'
+    },
+    {
+      id: 5,
+      title: 'Santorini Sunset Cruise',
+      location: 'Santorini, Greece',
+      description: 'Sail across the caldera and watch the famous sunset.',
+      image: 'https://images.unsplash.com/photo-1613395877344-13d4a8e0d49e?auto=format&fit=crop&q=80&w=600&h=400'
+    },
+    {
+      id: 6,
+      title: 'Machu Picchu Trek',
+      location: 'Cusco, Peru',
+      description: 'Hike the historic Inca trail to the lost city.',
+      image: 'https://images.unsplash.com/photo-1587595431973-160d0d94add1?auto=format&fit=crop&q=80&w=600&h=400'
+    },
+    {
+      id: 7,
+      title: 'Northern Lights Safari',
+      location: 'Tromso, Norway',
+      description: 'Chase the aurora borealis in the Arctic circle.',
+      image: 'https://images.unsplash.com/photo-1579033461380-adb47c3eb938?auto=format&fit=crop&q=80&w=600&h=400'
+    },
+    {
+      id: 8,
+      title: 'Great Barrier Reef Dive',
+      location: 'Queensland, Australia',
+      description: 'Scuba dive in the worlds largest coral reef system.',
+      image: 'https://images.unsplash.com/photo-1582967788606-a171c1080cb0?auto=format&fit=crop&q=80&w=600&h=400'
+    },
+    {
+      id: 9,
+      title: 'Banff National Park',
+      location: 'Alberta, Canada',
+      description: 'Explore the stunning turquoise lakes and mountains.',
+      image: 'https://images.unsplash.com/photo-1561134643-66c98f98126d?auto=format&fit=crop&q=80&w=600&h=400'
     }
   ];
   res.json(recommendations);

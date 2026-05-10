@@ -4,8 +4,22 @@ import { useLocation, useNavigate } from 'react-router-dom';
 const Dashboard = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  // We'll use a mock user if one isn't provided so we can see the design
-  const user = location.state?.user || { first_name: 'Jane', last_name: 'Doe' };
+  const user = location.state?.user;
+
+  const [trips, setTrips] = useState([]);
+  const [recommendations, setRecommendations] = useState([]);
+
+  if (!user) {
+    return (
+      <div className="login-container">
+        <div className="login-card" style={{ textAlign: 'center' }}>
+          <h2>Unauthorized</h2>
+          <p className="subtitle" style={{ marginTop: '12px' }}>Please log in to access the dashboard.</p>
+          <button onClick={() => navigate('/')} className="login-btn" style={{ marginTop: '24px' }}>Go to Login</button>
+        </div>
+      </div>
+    );
+  }
 
   useEffect(() => {
     if (user) {
@@ -38,6 +52,9 @@ const Dashboard = () => {
     }
   };
 
+  const upcomingTrips = trips.filter(trip => new Date(trip.end_date) >= new Date());
+  const pastTrips = trips.filter(trip => new Date(trip.end_date) < new Date());
+
 
 
   const handleLogout = () => {
@@ -55,7 +72,7 @@ const Dashboard = () => {
       <div className="bg-shape-pink-blob"></div>
       <div className="bg-shape-purple-circle"></div>
       <div className="bg-shape-green-blob"></div>
-      
+
       {/* Navbar */}
       <nav className="dash-nav">
         <div className="dash-logo">
@@ -111,7 +128,7 @@ const Dashboard = () => {
             {/* Duplicate cards for UI demonstration */}
             <div className="dash-card-square">
               <div className="dash-card-square-img">
-                <img src="/regional_1.png" alt="Asia" style={{filter: 'hue-rotate(90deg)'}}/>
+                <img src="/regional_1.png" alt="Asia" style={{ filter: 'hue-rotate(90deg)' }} />
               </div>
               <div className="dash-card-square-info">
                 <h4>Southeast Asia</h4>
@@ -119,7 +136,7 @@ const Dashboard = () => {
             </div>
             <div className="dash-card-square">
               <div className="dash-card-square-img">
-                <img src="/regional_1.png" alt="Americas" style={{filter: 'hue-rotate(180deg)'}}/>
+                <img src="/regional_1.png" alt="Americas" style={{ filter: 'hue-rotate(180deg)' }} />
               </div>
               <div className="dash-card-square-info">
                 <h4>Latin America</h4>
@@ -127,7 +144,7 @@ const Dashboard = () => {
             </div>
             <div className="dash-card-square">
               <div className="dash-card-square-img">
-                <img src="/regional_1.png" alt="Nordics" style={{filter: 'hue-rotate(270deg)'}}/>
+                <img src="/regional_1.png" alt="Nordics" style={{ filter: 'hue-rotate(270deg)' }} />
               </div>
               <div className="dash-card-square-info">
                 <h4>The Nordics</h4>
@@ -135,7 +152,7 @@ const Dashboard = () => {
             </div>
             <div className="dash-card-square">
               <div className="dash-card-square-img">
-                <img src="/regional_1.png" alt="Africa" style={{filter: 'sepia(0.5)'}}/>
+                <img src="/regional_1.png" alt="Africa" style={{ filter: 'sepia(0.5)' }} />
               </div>
               <div className="dash-card-square-info">
                 <h4>North Africa</h4>
@@ -144,56 +161,62 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Previous Trips */}
-        <div className="dash-section">
-          <div className="dash-section-header">
-            <h3>Previous Trips</h3>
-            <span className="dash-section-link">View history</span>
-          </div>
-          <div className="dash-cards-scroll-container">
-            {/* Trip Card 1 */}
-            <div className="dash-card-vert">
-              <img src="/trip_1.png" alt="Maldives" />
-              <div className="dash-card-vert-overlay">
-                <h4>Maldives Escape</h4>
-                <p>June 2025</p>
-              </div>
-            </div>
-            {/* Duplicate cards for UI demonstration */}
-            <div className="dash-card-vert">
-              <img src="/trip_1.png" alt="Bali" style={{filter: 'hue-rotate(45deg)'}}/>
-              <div className="dash-card-vert-overlay">
-                <h4>Bali Retreat</h4>
-                <p>March 2025</p>
-              </div>
-            </div>
-            <div className="dash-card-vert">
-              <img src="/trip_1.png" alt="Alps" style={{filter: 'hue-rotate(135deg)'}}/>
-              <div className="dash-card-vert-overlay">
-                <h4>Swiss Alps</h4>
-                <p>December 2024</p>
-              </div>
-            </div>
-            <div className="dash-card-vert">
-              <img src="/trip_1.png" alt="Tokyo" style={{filter: 'hue-rotate(225deg)'}}/>
-              <div className="dash-card-vert-overlay">
-                <h4>Tokyo Lights</h4>
-                <p>October 2024</p>
-              </div>
+        <div className="dashboard-inner">
+          <header className="dashboard-header">
+            <h1>Welcome back, {user.first_name}!</h1>
+            <p className="subtitle">Here's what's happening with your travels today.</p>
+          </header>
+
+          <div className="dashboard-content">
+            <div className="dashboard-card" style={{ flex: 1 }}>
+              <h3>Upcoming Trips</h3>
+              {trips.length > 0 ? (
+                <div className="trips-list" style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {trips.map(trip => (
+                    <div key={trip.id} className="trip-item" style={{ background: 'rgba(0,0,0,0.2)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                      <h4 style={{ margin: '0 0 4px 0', color: 'var(--primary-color)' }}>{trip.destination}</h4>
+                      <p style={{ margin: '0 0 8px 0', fontSize: '13px', color: 'var(--text-muted)' }}>
+                        {new Date(trip.start_date).toLocaleDateString()} - {new Date(trip.end_date).toLocaleDateString()}
+                      </p>
+                      <span style={{ fontSize: '12px', background: 'rgba(16, 185, 129, 0.2)', color: '#10b981', padding: '4px 8px', borderRadius: '4px' }}>{trip.status}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="subtitle" style={{ marginTop: '12px' }}>You have no upcoming trips. Start planning your next adventure!</p>
+              )}
+              <button className="login-btn" style={{ width: 'auto', padding: '10px 24px', marginTop: '20px' }} onClick={() => navigate('/plan-trip', { state: { user } })}>Plan a Trip</button>
             </div>
           </div>
+
+          {/* Recommendations Section */}
+          <div className="recommendations-section" style={{ marginTop: '40px' }}>
+            <h2 style={{ marginBottom: '20px' }}>Recommended For You</h2>
+            <div className="recommendations-scroll">
+              {recommendations.map(rec => (
+                <div key={rec.id} className="recommendation-card">
+                  <img src={rec.image} alt={rec.title} />
+                  <div className="recommendation-content">
+                    <h4>{rec.title}</h4>
+                    <p className="location">{rec.location}</p>
+                    <p className="desc">{rec.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
         </div>
 
+        {/* Floating Action Button */}
+        <button className="dash-fab" onClick={() => navigate('/plan-trip', { state: { user } })}>
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          Plan a trip
+        </button>
+
       </div>
-
-      {/* Floating Action Button */}
-      <button className="dash-fab">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-        </svg>
-        Plan a trip
-      </button>
-
     </div>
   );
 };
