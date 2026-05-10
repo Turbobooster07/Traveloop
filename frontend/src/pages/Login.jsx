@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 const Login = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const credentials = location.state?.credentials;
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (credentials) {
@@ -14,6 +17,32 @@ const Login = () => {
       setPassword(credentials.password);
     }
   }, [credentials]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    
+    try {
+      const response = await fetch('http://localhost:5000/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        navigate('/dashboard', { state: { user: data.user } });
+      } else {
+        setError(data.error || 'Login failed');
+      }
+    } catch (err) {
+      setError('Network error. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <div className="login-container">
       <div className="login-card">
@@ -42,7 +71,9 @@ const Login = () => {
           </div>
         )}
 
-        <form action="#" method="POST" className="login-form">
+        {error && <div style={{ color: '#f77062', marginBottom: '15px', textAlign: 'center', fontSize: '14px', fontWeight: '500' }}>{error}</div>}
+
+        <form onSubmit={handleSubmit} className="login-form">
           <div className="input-group">
             <label htmlFor="username">Username</label>
             <input 
@@ -76,7 +107,9 @@ const Login = () => {
             <a href="#" className="forgot-password">Forgot password?</a>
           </div>
           
-          <button type="submit" className="login-btn">Log In</button>
+          <button type="submit" className="login-btn" disabled={loading}>
+            {loading ? 'Logging in...' : 'Log In'}
+          </button>
         </form>
         <div className="signup-link">
           Don't have an account? <Link to="/register">Sign up</Link>

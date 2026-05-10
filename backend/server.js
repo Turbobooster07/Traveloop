@@ -73,14 +73,34 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
-// Example Login Endpoint
+// Login Endpoint
 app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
-  // TODO: Verify against PostgreSQL
-  if (username === 'test' && password === 'password') {
-    res.json({ token: 'mock-jwt-token-12345', message: 'Login successful' });
-  } else {
-    res.status(401).json({ error: 'Invalid credentials' });
+  
+  try {
+    const result = await pool.query(userQueries.getUserByUsername, [username]);
+    
+    if (result.rows.length === 0) {
+      return res.status(401).json({ error: 'Invalid username or password' });
+    }
+    
+    const user = result.rows[0];
+    const match = await bcrypt.compare(password, user.password_hash);
+    
+    if (match) {
+      // Remove password hash before sending user data
+      delete user.password_hash;
+      
+      res.json({ 
+        message: 'Login successful',
+        user: user 
+      });
+    } else {
+      res.status(401).json({ error: 'Invalid username or password' });
+    }
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
