@@ -329,6 +329,105 @@ app.get('/api/itinerary/:tripId', async (req, res) => {
 });
 
 
+// Create/Update Day Plans for a trip
+app.post('/api/day-plans', async (req, res) => {
+  const { trip_id, user_id, days } = req.body;
+
+  if (!user_id || !days) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  try {
+    // Ensure day_plans table exists
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS day_plans (
+        id SERIAL PRIMARY KEY,
+        trip_id INTEGER REFERENCES trips(id) ON DELETE CASCADE,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        day_number INTEGER,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Ensure day_plan_activities table exists
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS day_plan_activities (
+        id SERIAL PRIMARY KEY,
+        day_plan_id INTEGER REFERENCES day_plans(id) ON DELETE CASCADE,
+        activity_text VARCHAR(255),
+        expense NUMERIC(12,2),
+        activity_order INTEGER
+      )
+    `);
+
+    // Delete old day plans for this trip if re-saving (cascades to activities)
+    if (trip_id) {
+      await pool.query('DELETE FROM day_plans WHERE trip_id = $1', [trip_id]);
+    }
+
+    const insertedDays = [];
+    for (let i = 0; i < days.length; i++) {
+      const d = days[i];
+      const result = await pool.query(
+        `INSERT INTO day_plans (trip_id, user_id, day_number)
+         VALUES ($1, $2, $3)
+         RETURNING *`,
+        [trip_id || null, user_id, d.dayNumber]
+      );
+      const dayRow = result.rows[0];
+
+      // Insert activities for this day
+      const activities = d.activities || [];
+      const insertedActivities = [];
+      for (let j = 0; j < activities.length; j++) {
+        const act = activities[j];
+        if (!act.text && !act.expense) continue;
+        
+        const actResult = await pool.query(
+          `INSERT INTO day_plan_activities (day_plan_id, activity_text, expense, activity_order)
+           VALUES ($1, $2, $3, $4)
+           RETURNING *`,
+          [dayRow.id, act.text || '', act.expense ? parseFloat(act.expense) : null, j + 1]
+        );
+        insertedActivities.push(actResult.rows[0]);
+      }
+      dayRow.activities = insertedActivities;
+      insertedDays.push(dayRow);
+    }
+
+    res.status(201).json({ message: 'Day plan saved successfully', days: insertedDays });
+  } catch (error) {
+    console.error('Day plan save error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get day plans for a trip
+app.get('/api/day-plans/:tripId', async (req, res) => {
+  try {
+    const { tripId } = req.params;
+    const dayResult = await pool.query(
+      `SELECT * FROM day_plans WHERE trip_id = $1 ORDER BY day_number ASC`,
+      [tripId]
+    );
+    const days = dayResult.rows;
+
+    for (const day of days) {
+      const actResult = await pool.query(
+        `SELECT * FROM day_plan_activities WHERE day_plan_id = $1 ORDER BY activity_order ASC`,
+        [day.id]
+      );
+      day.activities = actResult.rows;
+    }
+
+    res.json(days);
+  } catch (error) {
+    // If table doesn't exist yet, just return empty array
+    res.json([]);
+  }
+});
+
+
 // Get user trips
 app.get('/api/trips/:userId', async (req, res) => {
   try {

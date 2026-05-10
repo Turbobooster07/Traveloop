@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const DayWiseItinerary = () => {
@@ -6,6 +6,9 @@ const DayWiseItinerary = () => {
   const location = useLocation();
   const user = location.state?.user;
   const trip = location.state?.trip;
+
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   // Initial structure: 2 days, each with 2 activities
   const [days, setDays] = useState([
@@ -26,6 +29,35 @@ const DayWiseItinerary = () => {
       ]
     }
   ]);
+
+  useEffect(() => {
+    if (trip?.id) {
+      fetchDayPlans();
+    }
+  }, [trip]);
+
+  const fetchDayPlans = async () => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/day-plans/${trip.id}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.length > 0) {
+          const formattedDays = data.map(d => ({
+            id: d.id,
+            dayNumber: d.day_number,
+            activities: d.activities.length > 0 ? d.activities.map(a => ({
+              id: a.id,
+              text: a.activity_text || '',
+              expense: a.expense || ''
+            })) : [{ id: Date.now() + Math.random(), text: '', expense: '' }]
+          }));
+          setDays(formattedDays);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch day plans', err);
+    }
+  };
 
   if (!user) {
     return (
@@ -74,6 +106,32 @@ const DayWiseItinerary = () => {
         activities: [{ id: Date.now() + 1, text: '', expense: '' }]
       }
     ]);
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const response = await fetch('http://localhost:5000/api/day-plans', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          trip_id: trip?.id,
+          user_id: user.id,
+          days
+        })
+      });
+      if (response.ok) {
+        setSaved(true);
+        setTimeout(() => navigate('/dashboard', { state: { user } }), 1500);
+      } else {
+        alert('Failed to save day plan');
+      }
+    } catch (err) {
+      console.error('Save error:', err);
+      alert('Failed to connect to server');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const inputStyle = {
@@ -254,9 +312,25 @@ const DayWiseItinerary = () => {
             Add another Day
           </button>
           
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px', gap: '16px' }}>
             <button
-              onClick={() => { alert('Saved day plan!'); navigate('/dashboard', { state: { user }}); }}
+              onClick={() => navigate('/dashboard', { state: { user } })}
+              style={{
+                padding: '14px 24px',
+                background: 'var(--card-bg)',
+                color: 'var(--text-muted)',
+                border: '1px solid var(--border-medium)',
+                borderRadius: '16px',
+                fontSize: '16px',
+                fontWeight: '600',
+                cursor: 'pointer'
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={saving || saved}
               style={{
                 padding: '14px 40px',
                 background: 'var(--cta-gradient)',
@@ -265,11 +339,12 @@ const DayWiseItinerary = () => {
                 borderRadius: '16px',
                 fontSize: '16px',
                 fontWeight: '700',
-                cursor: 'pointer',
-                boxShadow: 'var(--cta-shadow)'
+                cursor: saving || saved ? 'default' : 'pointer',
+                boxShadow: 'var(--cta-shadow)',
+                opacity: saving || saved ? 0.8 : 1
               }}
             >
-              Save Day Plan
+              {saved ? '✅ Saved! Redirecting...' : saving ? 'Saving...' : 'Save Day Plan'}
             </button>
           </div>
         </div>
