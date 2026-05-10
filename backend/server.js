@@ -5,7 +5,7 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 require('dotenv').config();
 
-const { userQueries } = require('./database/queries');
+const { userQueries, tripQueries } = require('./database/queries');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -104,6 +104,73 @@ app.post('/api/login', async (req, res) => {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
+});
+
+// Create a new trip
+app.post('/api/trips', async (req, res) => {
+  try {
+    const { user_id, destination, start_date, end_date, status } = req.body;
+    
+    if (!user_id || !destination || !start_date || !end_date) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    const result = await pool.query(tripQueries.createTrip, [
+      user_id, destination, start_date, end_date, status || 'Upcoming'
+    ]);
+    
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error('Create trip error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get user trips
+app.get('/api/trips/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const result = await pool.query(tripQueries.getTripsByUser, [userId]);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Get trips error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get recommendations (Mock data for now)
+app.get('/api/recommendations', (req, res) => {
+  const recommendations = [
+    {
+      id: 1,
+      title: 'Snorkeling in Bali',
+      location: 'Bali, Indonesia',
+      description: 'Explore the vibrant coral reefs and marine life.',
+      image: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&q=80&w=600&h=400'
+    },
+    {
+      id: 2,
+      title: 'Eiffel Tower Tour',
+      location: 'Paris, France',
+      description: 'Skip the line and enjoy breathtaking views of Paris.',
+      image: 'https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?auto=format&fit=crop&q=80&w=600&h=400'
+    },
+    {
+      id: 3,
+      title: 'Grand Canyon Helicopter',
+      location: 'Arizona, USA',
+      description: 'Experience the majesty of the canyon from the air.',
+      image: 'https://images.unsplash.com/photo-1615551043360-33de8b5f410c?auto=format&fit=crop&q=80&w=600&h=400'
+    },
+    {
+      id: 4,
+      title: 'Kyoto Temple Walk',
+      location: 'Kyoto, Japan',
+      description: 'Discover the serene beauty of ancient temples.',
+      image: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&q=80&w=600&h=400'
+    }
+  ];
+  res.json(recommendations);
 });
 
 app.listen(PORT, () => {

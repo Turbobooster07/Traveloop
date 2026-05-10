@@ -4,8 +4,19 @@ import { useLocation, useNavigate } from 'react-router-dom';
 const Dashboard = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  // We'll use a mock user if one isn't provided so we can see the design
-  const user = location.state?.user || { first_name: 'Jane', last_name: 'Doe' };
+  const user = location.state?.user;
+
+  if (!user) {
+    return (
+      <div className="login-container">
+        <div className="login-card" style={{ textAlign: 'center' }}>
+          <h2>Unauthorized</h2>
+          <p className="subtitle" style={{ marginTop: '12px' }}>Please log in to access the dashboard.</p>
+          <button onClick={() => navigate('/')} className="login-btn" style={{ marginTop: '24px' }}>Go to Login</button>
+        </div>
+      </div>
+    );
+  }
 
   const handleLogout = () => {
     navigate('/');
@@ -22,7 +33,7 @@ const Dashboard = () => {
       <div className="bg-shape-pink-blob"></div>
       <div className="bg-shape-purple-circle"></div>
       <div className="bg-shape-green-blob"></div>
-      
+
       {/* Navbar */}
       <nav className="dash-nav">
         <div className="dash-logo">
@@ -78,7 +89,7 @@ const Dashboard = () => {
             {/* Duplicate cards for UI demonstration */}
             <div className="dash-card-square">
               <div className="dash-card-square-img">
-                <img src="/regional_1.png" alt="Asia" style={{filter: 'hue-rotate(90deg)'}}/>
+                <img src="/regional_1.png" alt="Asia" style={{ filter: 'hue-rotate(90deg)' }} />
               </div>
               <div className="dash-card-square-info">
                 <h4>Southeast Asia</h4>
@@ -86,7 +97,7 @@ const Dashboard = () => {
             </div>
             <div className="dash-card-square">
               <div className="dash-card-square-img">
-                <img src="/regional_1.png" alt="Americas" style={{filter: 'hue-rotate(180deg)'}}/>
+                <img src="/regional_1.png" alt="Americas" style={{ filter: 'hue-rotate(180deg)' }} />
               </div>
               <div className="dash-card-square-info">
                 <h4>Latin America</h4>
@@ -94,7 +105,7 @@ const Dashboard = () => {
             </div>
             <div className="dash-card-square">
               <div className="dash-card-square-img">
-                <img src="/regional_1.png" alt="Nordics" style={{filter: 'hue-rotate(270deg)'}}/>
+                <img src="/regional_1.png" alt="Nordics" style={{ filter: 'hue-rotate(270deg)' }} />
               </div>
               <div className="dash-card-square-info">
                 <h4>The Nordics</h4>
@@ -102,7 +113,7 @@ const Dashboard = () => {
             </div>
             <div className="dash-card-square">
               <div className="dash-card-square-img">
-                <img src="/regional_1.png" alt="Africa" style={{filter: 'sepia(0.5)'}}/>
+                <img src="/regional_1.png" alt="Africa" style={{ filter: 'sepia(0.5)' }} />
               </div>
               <div className="dash-card-square-info">
                 <h4>North Africa</h4>
@@ -128,21 +139,21 @@ const Dashboard = () => {
             </div>
             {/* Duplicate cards for UI demonstration */}
             <div className="dash-card-vert">
-              <img src="/trip_1.png" alt="Bali" style={{filter: 'hue-rotate(45deg)'}}/>
+              <img src="/trip_1.png" alt="Bali" style={{ filter: 'hue-rotate(45deg)' }} />
               <div className="dash-card-vert-overlay">
                 <h4>Bali Retreat</h4>
                 <p>March 2025</p>
               </div>
             </div>
             <div className="dash-card-vert">
-              <img src="/trip_1.png" alt="Alps" style={{filter: 'hue-rotate(135deg)'}}/>
+              <img src="/trip_1.png" alt="Alps" style={{ filter: 'hue-rotate(135deg)' }} />
               <div className="dash-card-vert-overlay">
                 <h4>Swiss Alps</h4>
                 <p>December 2024</p>
               </div>
             </div>
             <div className="dash-card-vert">
-              <img src="/trip_1.png" alt="Tokyo" style={{filter: 'hue-rotate(225deg)'}}/>
+              <img src="/trip_1.png" alt="Tokyo" style={{ filter: 'hue-rotate(225deg)' }} />
               <div className="dash-card-vert-overlay">
                 <h4>Tokyo Lights</h4>
                 <p>October 2024</p>
@@ -150,7 +161,6 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
-
       </div>
 
       {/* Floating Action Button */}
@@ -160,7 +170,6 @@ const Dashboard = () => {
         </svg>
         Plan a trip
       </button>
-
     </div>
   );
 };
