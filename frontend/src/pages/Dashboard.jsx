@@ -78,8 +78,30 @@ const Dashboard = () => {
         <div className="dash-logo">
           <h1>Traveloop</h1>
         </div>
-        <div className="dash-profile" onClick={handleLogout} title="Logout">
-          {getInitials(user.first_name, user.last_name)}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <button
+            onClick={() => navigate('/my-trips', { state: { user } })}
+            style={{
+              padding: '10px 20px',
+              background: 'var(--card-bg)',
+              backdropFilter: 'blur(16px)',
+              border: '1px solid var(--border-medium)',
+              borderRadius: '14px',
+              fontSize: '14px',
+              fontWeight: '600',
+              color: 'var(--text-muted)',
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-main)'; e.currentTarget.style.background = 'rgba(255,255,255,0.6)'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = 'var(--card-bg)'; }}
+          >
+            🗺️ My Trips
+          </button>
+          <div className="dash-profile" onClick={handleLogout} title="Logout">
+            {getInitials(user.first_name, user.last_name)}
+          </div>
         </div>
       </nav>
 
