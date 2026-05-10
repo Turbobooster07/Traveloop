@@ -29,7 +29,7 @@ CREATE TRIGGER update_user_modtime BEFORE
 UPDATE ON users FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Trips Table
-CREATE TABLE IF NOT EXISTS trips (
+CREATE TABLE IF NOT EXISTS trips (  
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
     destination VARCHAR(255) NOT NULL,
