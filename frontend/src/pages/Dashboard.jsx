@@ -4,29 +4,26 @@ import { useLocation, useNavigate } from 'react-router-dom';
 const Dashboard = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const user = location.state?.user;
+  
+  // Try to get user from state, otherwise fallback to localStorage
+  const [user, setUser] = useState(() => {
+    if (location.state?.user) return location.state.user;
+    const savedUser = localStorage.getItem('user');
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
 
   const [trips, setTrips] = useState([]);
   const [recommendations, setRecommendations] = useState([]);
 
-  if (!user) {
-    return (
-      <div className="login-container">
-        <div className="login-card" style={{ textAlign: 'center' }}>
-          <h2>Unauthorized</h2>
-          <p className="subtitle" style={{ marginTop: '12px' }}>Please log in to access the dashboard.</p>
-          <button onClick={() => navigate('/')} className="login-btn" style={{ marginTop: '24px' }}>Go to Login</button>
-        </div>
-      </div>
-    );
-  }
-
   useEffect(() => {
-    if (user) {
-      fetchTrips();
-      fetchRecommendations();
+    if (!user) {
+      // If still no user, redirect to login
+      navigate('/');
+      return;
     }
-  }, [user]);
+    fetchTrips();
+    fetchRecommendations();
+  }, [user, navigate]);
 
   const fetchTrips = async () => {
     try {
@@ -55,9 +52,8 @@ const Dashboard = () => {
   const upcomingTrips = trips.filter(trip => new Date(trip.end_date) >= new Date());
   const pastTrips = trips.filter(trip => new Date(trip.end_date) < new Date());
 
-
-
   const handleLogout = () => {
+    localStorage.removeItem('user');
     navigate('/');
   };
 
@@ -78,7 +74,7 @@ const Dashboard = () => {
         <div className="dash-logo">
           <h1>Traveloop</h1>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div className="dash-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <button
             onClick={() => navigate('/my-trips', { state: { user } })}
             style={{
@@ -99,7 +95,10 @@ const Dashboard = () => {
           >
             🗺️ My Trips
           </button>
-          <div className="dash-profile" onClick={handleLogout} title="Logout">
+          <button onClick={handleLogout} className="dash-btn-chip" style={{ background: 'transparent', border: '1px solid var(--border-medium)' }}>
+            Logout
+          </button>
+          <div className="dash-profile" onClick={() => navigate('/profile', { state: { user } })} title="View Profile">
             {getInitials(user.first_name, user.last_name)}
           </div>
         </div>
