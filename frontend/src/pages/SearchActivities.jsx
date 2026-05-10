@@ -287,7 +287,16 @@ const SearchActivities = () => {
                         boxShadow: 'var(--cta-shadow)',
                         whiteSpace: 'nowrap'
                       }}
-                      onClick={(e) => { e.stopPropagation(); navigate('/plan-trip', { state: { user } }); }}
+                      onClick={(e) => { 
+                        e.stopPropagation(); 
+                        navigate('/plan-trip', { 
+                          state: { 
+                            user, 
+                            initialDestination: item.name, 
+                            initialDescription: item.full 
+                          } 
+                        }); 
+                      }}
                       >
                         Plan Activity
                       </button>
