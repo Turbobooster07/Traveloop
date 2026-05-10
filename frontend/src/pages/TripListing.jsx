@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import Navbar from '../components/Navbar';
 
 const statusOrder = ['Ongoing', 'Upcoming', 'Completed'];
 
@@ -143,105 +144,7 @@ const TripListing = () => {
 
   return (
     <div className="dash-wrapper" onClick={() => { setShowGroupMenu(false); setShowSortMenu(false); setShowFilterMenu(false); }}>
-
-      {/* Navbar */}
-      <nav className="dash-nav">
-        <div className="dash-logo" onClick={() => navigate('/dashboard', { state: { user } })} style={{ cursor: 'pointer' }}>
-          <h1>Traveloop</h1>
-        </div>
-
-        {/* Search Bar */}
-        <div style={{ flex: 1, maxWidth: '420px', margin: '0 32px', position: 'relative' }}>
-          <span style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', fontSize: '16px', color: 'var(--text-muted)' }}>🔍</span>
-          <input
-            type="text"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Search trips..."
-            style={{
-              width: '100%',
-              padding: '10px 16px 10px 44px',
-              background: 'var(--input-bg)',
-              border: '1px solid var(--input-border)',
-              borderRadius: '12px',
-              fontSize: '14px',
-              color: 'var(--text-main)',
-              outline: 'none',
-              fontFamily: 'inherit'
-            }}
-          />
-        </div>
-
-        <div className="dash-actions" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <button
-            onClick={() => navigate('/my-trips', { state: { user } })}
-            style={{
-              padding: '10px 18px',
-              background: 'var(--card-bg)',
-              backdropFilter: 'blur(16px)',
-              border: '1px solid var(--border-medium)',
-              borderRadius: '14px',
-              fontSize: '13px',
-              fontWeight: '700',
-              color: 'var(--text-main)',
-              cursor: 'pointer',
-              fontFamily: 'inherit'
-            }}
-          >
-            🗺️ My Trips
-          </button>
-          <button
-            onClick={() => navigate('/community', { state: { user } })}
-            style={{
-              padding: '10px 18px',
-              background: 'var(--card-bg)',
-              backdropFilter: 'blur(16px)',
-              border: '1px solid var(--border-medium)',
-              borderRadius: '14px',
-              fontSize: '13px',
-              fontWeight: '600',
-              color: 'var(--text-muted)',
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-main)'; e.currentTarget.style.background = 'rgba(255,255,255,0.6)'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = 'var(--card-bg)'; }}
-          >
-            👥 Community
-          </button>
-          <button
-            onClick={() => navigate('/notes', { state: { user } })}
-            style={{
-              padding: '10px 18px',
-              background: 'var(--card-bg)',
-              backdropFilter: 'blur(16px)',
-              border: '1px solid var(--border-medium)',
-              borderRadius: '14px',
-              fontSize: '13px',
-              fontWeight: '600',
-              color: 'var(--text-muted)',
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-main)'; e.currentTarget.style.background = 'rgba(255,255,255,0.6)'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = 'var(--card-bg)'; }}
-          >
-            📔 Trip Notes
-          </button>
-          <button onClick={() => navigate('/')} className="dash-btn-chip" style={{ background: 'transparent', border: '1px solid var(--border-medium)', padding: '8px 16px' }}>
-            Logout
-          </button>
-          <div className="dash-profile" onClick={() => navigate('/profile')} title="View Profile">
-            {user.profile_pic ? (
-              <img src={user.profile_pic} alt="Profile" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
-            ) : (
-              `${user.first_name?.charAt(0)}${user.last_name?.charAt(0)}`
-            )}
-          </div>
-        </div>
-      </nav>
+      <Navbar user={user} />
 
       {/* Page Content */}
       <div className="dash-container">
@@ -253,6 +156,65 @@ const TripListing = () => {
             {filtered.length} trip{filtered.length !== 1 ? 's' : ''} found
           </p>
         </header>
+
+        {/* Toolbar for Search/Filter within the page */}
+        <div style={{ display: 'flex', gap: '15px', alignItems: 'center', margin: '20px 8px', flexWrap: 'wrap' }}>
+            {/* Search Bar */}
+            <div style={{ flex: 1, maxWidth: '420px', position: 'relative' }}>
+            <span style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', fontSize: '16px', color: 'var(--text-muted)' }}>🔍</span>
+            <input
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Search trips..."
+                style={{
+                width: '100%',
+                padding: '10px 16px 10px 44px',
+                background: 'var(--input-bg)',
+                border: '1px solid var(--input-border)',
+                borderRadius: '12px',
+                fontSize: '14px',
+                color: 'var(--text-main)',
+                outline: 'none',
+                fontFamily: 'inherit'
+                }}
+            />
+            </div>
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                 {/* Group By */}
+                <div style={{ position: 'relative' }} onClick={e => e.stopPropagation()}>
+                    <button onClick={() => { setShowGroupMenu(v => !v); setShowSortMenu(false); setShowFilterMenu(false); }} style={chipBtnStyle(groupBy !== 'status')}>
+                    Group by
+                    </button>
+                    {showGroupMenu && (
+                    <div style={dropdownStyle}>
+                        {[['status','By Status'], ['month','By Month'], ['destination','By Destination']].map(([val, label]) => (
+                        <div key={val} style={dropdownItemStyle(groupBy === val)} onClick={() => { setGroupBy(val); setShowGroupMenu(false); }}>
+                            {label}
+                        </div>
+                        ))}
+                    </div>
+                    )}
+                </div>
+
+                {/* Filter */}
+                <div style={{ position: 'relative' }} onClick={e => e.stopPropagation()}>
+                    <button onClick={() => { setShowFilterMenu(v => !v); setShowGroupMenu(false); setShowSortMenu(false); }} style={chipBtnStyle(filterStatus !== 'All')}>
+                    Filter
+                    </button>
+                    {showFilterMenu && (
+                    <div style={dropdownStyle}>
+                        {['All', 'Ongoing', 'Upcoming', 'Completed'].map(val => (
+                        <div key={val} style={dropdownItemStyle(filterStatus === val)} onClick={() => { setFilterStatus(val); setShowFilterMenu(false); }}>
+                            {val}
+                        </div>
+                        ))}
+                    </div>
+                    )}
+                </div>
+            </div>
+        </div>
 
         {/* Grouped Sections */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>

@@ -107,3 +107,49 @@ CREATE TABLE IF NOT EXISTS packing_items (
 
 CREATE INDEX IF NOT EXISTS idx_packing_trip_id ON packing_items(trip_id);
 CREATE INDEX IF NOT EXISTS idx_notes_trip_id ON trip_notes(trip_id);
+
+-- Invoices Table
+CREATE TABLE IF NOT EXISTS invoices (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    trip_id INTEGER REFERENCES trips(id) ON DELETE SET NULL,
+    amount DECIMAL(10, 2) NOT NULL,
+    due_date DATE NOT NULL,
+    status VARCHAR(50) DEFAULT 'Pending', -- Pending, Paid, Overdue, Cancelled
+    description TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Payments Table
+CREATE TABLE IF NOT EXISTS payments (
+    id SERIAL PRIMARY KEY,
+    invoice_id INTEGER REFERENCES invoices(id) ON DELETE CASCADE,
+    amount DECIMAL(10, 2) NOT NULL,
+    payment_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    payment_method VARCHAR(50),
+    transaction_id VARCHAR(255),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Expense Items Table (for the Calculator)
+CREATE TABLE IF NOT EXISTS expense_items (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    trip_id INTEGER REFERENCES trips(id) ON DELETE CASCADE,
+    category VARCHAR(100),
+    description TEXT,
+    quantity_details VARCHAR(255),
+    unit_cost DECIMAL(10, 2) DEFAULT 0,
+    total_amount DECIMAL(10, 2) DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_expense_items_trip_id ON expense_items(trip_id);
+CREATE INDEX IF NOT EXISTS idx_expense_items_user_id ON expense_items(user_id);
+
+-- Trigger for expense_items
+DROP TRIGGER IF EXISTS update_expense_item_modtime ON expense_items;
+CREATE TRIGGER update_expense_item_modtime BEFORE
+UPDATE ON expense_items FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

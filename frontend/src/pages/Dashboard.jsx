@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import Navbar from '../components/Navbar';
 
 const Dashboard = () => {
   const location = useLocation();
@@ -52,15 +53,6 @@ const Dashboard = () => {
   const upcomingTrips = trips.filter(trip => new Date(trip.end_date) >= new Date());
   const pastTrips = trips.filter(trip => new Date(trip.end_date) < new Date());
 
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    navigate('/');
-  };
-
-  const getInitials = (first, last) => {
-    return `${first?.charAt(0) || ''}${last?.charAt(0) || ''}`;
-  };
-
   return (
     <div className="dash-wrapper">
       <div className="bg-shape-yellow"></div>
@@ -69,80 +61,7 @@ const Dashboard = () => {
       <div className="bg-shape-purple-circle"></div>
       <div className="bg-shape-green-blob"></div>
 
-      {/* Navbar */}
-      <nav className="dash-nav">
-        <div className="dash-logo">
-          <h1>Traveloop</h1>
-        </div>
-        <div className="dash-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <button
-            onClick={() => navigate('/my-trips', { state: { user } })}
-            style={{
-              padding: '10px 20px',
-              background: 'var(--card-bg)',
-              backdropFilter: 'blur(16px)',
-              border: '1px solid var(--border-medium)',
-              borderRadius: '14px',
-              fontSize: '14px',
-              fontWeight: '600',
-              color: 'var(--text-muted)',
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-main)'; e.currentTarget.style.background = 'rgba(255,255,255,0.6)'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = 'var(--card-bg)'; }}
-          >
-            My Trips
-          </button>
-          <button
-            onClick={() => navigate('/community', { state: { user } })}
-            style={{
-              padding: '10px 20px',
-              background: 'var(--card-bg)',
-              backdropFilter: 'blur(16px)',
-              border: '1px solid var(--border-medium)',
-              borderRadius: '14px',
-              fontSize: '14px',
-              fontWeight: '600',
-              color: 'var(--text-muted)',
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-main)'; e.currentTarget.style.background = 'rgba(255,255,255,0.6)'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = 'var(--card-bg)'; }}
-          >
-            👥 Community
-          </button>
-          <button
-            onClick={() => navigate('/notes', { state: { user } })}
-            style={{
-              padding: '10px 20px',
-              background: 'var(--card-bg)',
-              backdropFilter: 'blur(16px)',
-              border: '1px solid var(--border-medium)',
-              borderRadius: '14px',
-              fontSize: '14px',
-              fontWeight: '600',
-              color: 'var(--text-muted)',
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-main)'; e.currentTarget.style.background = 'rgba(255,255,255,0.6)'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = 'var(--card-bg)'; }}
-          >
-            📔 Trip Notes
-          </button>
-          <button onClick={handleLogout} className="dash-btn-chip" style={{ background: 'transparent', border: '1px solid var(--border-medium)' }}>
-            Logout
-          </button>
-          <div className="dash-profile" onClick={() => navigate('/profile', { state: { user } })} title="View Profile">
-            {getInitials(user.first_name, user.last_name)}
-          </div>
-        </div>
-      </nav>
+      <Navbar user={user} />
 
       <div className="dash-container">
         {/* Banner */}
@@ -231,7 +150,7 @@ const Dashboard = () => {
 
         <div className="dashboard-inner" style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
           <header className="dashboard-header" style={{ textAlign: 'left', padding: '0 8px' }}>
-            <h1 style={{ fontSize: '36px', fontWeight: '800', fontFamily: "'Outfit', sans-serif", color: 'var(--text-main)', letterSpacing: '-1px', margin: '0 0 8px 0' }}>Welcome back, {user.first_name}!</h1>
+            <h1 style={{ fontSize: '36px', fontWeight: '800', fontFamily: "'Outfit', sans-serif", color: 'var(--text-main)', letterSpacing: '-1px', margin: '0 0 8px 0' }}>Welcome back, {user?.first_name}!</h1>
             <p className="subtitle" style={{ fontSize: '16px', margin: 0, textAlign: 'left' }}>Here's what's happening with your travels today.</p>
           </header>
 

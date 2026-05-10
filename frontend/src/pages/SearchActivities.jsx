@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import Navbar from '../components/Navbar';
 
 const SearchActivities = () => {
   const navigate = useNavigate();
@@ -123,99 +124,7 @@ const SearchActivities = () => {
 
   return (
     <div className="dash-wrapper" onClick={() => { setShowGroupMenu(false); setShowSortMenu(false); setShowFilterMenu(false); }}>
-      {/* Navbar exactly like the reference UI */}
-      <nav className="dash-nav">
-        <div className="dash-logo" onClick={() => navigate('/dashboard', { state: { user } })} style={{ cursor: 'pointer' }}>
-          <h1>Traveloop</h1>
-        </div>
-        
-        {/* Main Search Bar in Navbar */}
-        <div style={{ flex: 1, maxWidth: '500px', margin: '0 32px', position: 'relative' }}>
-          <input
-            type="text"
-            value={search}
-            onChange={handleSearchChange}
-            placeholder="Search activities or cities... (e.g. Paragliding)"
-            style={{
-              width: '100%',
-              padding: '12px 16px',
-              background: 'var(--input-bg)',
-              border: '1px solid var(--input-border)',
-              borderRadius: '14px',
-              fontSize: '15px',
-              color: 'var(--text-main)',
-              outline: 'none',
-              fontFamily: 'inherit',
-              boxSizing: 'border-box'
-            }}
-          />
-          {isSearching && (
-            <span style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', fontSize: '13px', color: 'var(--text-muted)' }}>
-              Loading...
-            </span>
-          )}
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          {/* Group By */}
-          <div style={{ position: 'relative' }} onClick={e => e.stopPropagation()}>
-            <button onClick={() => { setShowGroupMenu(v => !v); setShowSortMenu(false); setShowFilterMenu(false); }} style={chipBtnStyle(groupBy !== 'none')}>
-              Group by
-            </button>
-            {showGroupMenu && (
-              <div style={dropdownStyle}>
-                {[['none','None'], ['type','By Activity Type']].map(([val, label]) => (
-                  <div key={val} style={dropdownItemStyle(groupBy === val)} onClick={() => { setGroupBy(val); setShowGroupMenu(false); }}
-                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(162,210,255,0.15)'}
-                    onMouseLeave={e => e.currentTarget.style.background = groupBy === val ? 'rgba(162,210,255,0.25)' : 'transparent'}>
-                    {label}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Filter */}
-          <div style={{ position: 'relative' }} onClick={e => e.stopPropagation()}>
-            <button onClick={() => { setShowFilterMenu(v => !v); setShowGroupMenu(false); setShowSortMenu(false); }} style={chipBtnStyle(filterStatus !== 'All')}>
-              Filter {filterStatus !== 'All' ? `· ${filterStatus}` : ''}
-            </button>
-            {showFilterMenu && (
-              <div style={dropdownStyle}>
-                {['All', 'Under ₹2000', 'Highly Rated'].map(val => (
-                  <div key={val} style={dropdownItemStyle(filterStatus === val)} onClick={() => { setFilterStatus(val); setShowFilterMenu(false); }}
-                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(162,210,255,0.15)'}
-                    onMouseLeave={e => e.currentTarget.style.background = filterStatus === val ? 'rgba(162,210,255,0.25)' : 'transparent'}>
-                    {val}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Sort By */}
-          <div style={{ position: 'relative' }} onClick={e => e.stopPropagation()}>
-            <button onClick={() => { setShowSortMenu(v => !v); setShowGroupMenu(false); setShowFilterMenu(false); }} style={chipBtnStyle(sortBy !== 'relevance')}>
-              Sort by
-            </button>
-            {showSortMenu && (
-              <div style={{ ...dropdownStyle, right: 0, left: 'auto' }}>
-                {[['relevance','Relevance'], ['price_low','Price: Low to High'], ['rating','Highest Rated']].map(([val, label]) => (
-                  <div key={val} style={dropdownItemStyle(sortBy === val)} onClick={() => { setSortBy(val); setShowSortMenu(false); }}
-                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(162,210,255,0.15)'}
-                    onMouseLeave={e => e.currentTarget.style.background = sortBy === val ? 'rgba(162,210,255,0.25)' : 'transparent'}>
-                    {label}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="dash-profile" style={{ marginLeft: '8px' }}>
-            {user.first_name.charAt(0)}{user.last_name.charAt(0)}
-          </div>
-        </div>
-      </nav>
+      <Navbar user={user} />
 
       {/* Main Container */}
       <div className="dash-container" style={{ maxWidth: '1000px', padding: '40px 5%' }}>
@@ -227,6 +136,91 @@ const SearchActivities = () => {
             {search.length < 2 ? "Start typing to search for cities or activities." : `${results.length} option(s) found for "${search}"`}
           </p>
         </header>
+
+        {/* Local toolbar for search within page */}
+        <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
+             <div style={{ flex: 1, minWidth: '200px', position: 'relative' }}>
+                <input
+                    type="text"
+                    value={search}
+                    onChange={handleSearchChange}
+                    placeholder="Search activities or cities... (e.g. Paragliding)"
+                    style={{
+                    width: '100%',
+                    padding: '12px 16px',
+                    background: 'var(--input-bg)',
+                    border: '1px solid var(--input-border)',
+                    borderRadius: '14px',
+                    fontSize: '15px',
+                    color: 'var(--text-main)',
+                    outline: 'none',
+                    fontFamily: 'inherit',
+                    boxSizing: 'border-box'
+                    }}
+                />
+                {isSearching && (
+                    <span style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', fontSize: '13px', color: 'var(--text-muted)' }}>
+                    Loading...
+                    </span>
+                )}
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {/* Group By */}
+            <div style={{ position: 'relative' }} onClick={e => e.stopPropagation()}>
+                <button onClick={() => { setShowGroupMenu(v => !v); setShowSortMenu(false); setShowFilterMenu(false); }} style={chipBtnStyle(groupBy !== 'none')}>
+                Group by
+                </button>
+                {showGroupMenu && (
+                <div style={dropdownStyle}>
+                    {[['none','None'], ['type','By Activity Type']].map(([val, label]) => (
+                    <div key={val} style={dropdownItemStyle(groupBy === val)} onClick={() => { setGroupBy(val); setShowGroupMenu(false); }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(162,210,255,0.15)'}
+                        onMouseLeave={e => e.currentTarget.style.background = groupBy === val ? 'rgba(162,210,255,0.25)' : 'transparent'}>
+                        {label}
+                    </div>
+                    ))}
+                </div>
+                )}
+            </div>
+
+            {/* Filter */}
+            <div style={{ position: 'relative' }} onClick={e => e.stopPropagation()}>
+                <button onClick={() => { setShowFilterMenu(v => !v); setShowGroupMenu(false); setShowSortMenu(false); }} style={chipBtnStyle(filterStatus !== 'All')}>
+                Filter {filterStatus !== 'All' ? `· ${filterStatus}` : ''}
+                </button>
+                {showFilterMenu && (
+                <div style={dropdownStyle}>
+                    {['All', 'Under ₹2000', 'Highly Rated'].map(val => (
+                    <div key={val} style={dropdownItemStyle(filterStatus === val)} onClick={() => { setFilterStatus(val); setShowFilterMenu(false); }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(162,210,255,0.15)'}
+                        onMouseLeave={e => e.currentTarget.style.background = filterStatus === val ? 'rgba(162,210,255,0.25)' : 'transparent'}>
+                        {val}
+                    </div>
+                    ))}
+                </div>
+                )}
+            </div>
+
+            {/* Sort By */}
+            <div style={{ position: 'relative' }} onClick={e => e.stopPropagation()}>
+                <button onClick={() => { setShowSortMenu(v => !v); setShowGroupMenu(false); setShowFilterMenu(false); }} style={chipBtnStyle(sortBy !== 'relevance')}>
+                Sort by
+                </button>
+                {showSortMenu && (
+                <div style={{ ...dropdownStyle, right: 0, left: 'auto' }}>
+                    {[['relevance','Relevance'], ['price_low','Price: Low to High'], ['rating','Highest Rated']].map(([val, label]) => (
+                    <div key={val} style={dropdownItemStyle(sortBy === val)} onClick={() => { setSortBy(val); setShowSortMenu(false); }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(162,210,255,0.15)'}
+                        onMouseLeave={e => e.currentTarget.style.background = sortBy === val ? 'rgba(162,210,255,0.25)' : 'transparent'}>
+                        {label}
+                    </div>
+                    ))}
+                </div>
+                )}
+            </div>
+            </div>
+        </div>
 
         {results.length > 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>

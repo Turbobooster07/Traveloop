@@ -14,6 +14,7 @@ import AdminPanel from './pages/AdminPanel';
 import PackingList from './pages/PackingList';
 import TripNotes from './pages/TripNotes';
 import AdminLogin from './pages/AdminLogin';
+import Billing from './pages/Billing';
 import './index.css';
 
 function App() {
@@ -36,6 +37,7 @@ function App() {
         <Route path="/admin" element={<AdminPanel />} />
         <Route path="/packing-list" element={<PackingList />} />
         <Route path="/notes" element={<TripNotes />} />
+        <Route path="/billing" element={<Billing />} />
       </Routes>
     </Router>
   );

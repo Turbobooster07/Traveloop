@@ -6,7 +6,7 @@ const crypto = require('crypto');
 const https = require('https');
 require('dotenv').config();
 
-const { userQueries, tripQueries, communityQueries } = require('./database/queries');
+const { userQueries, tripQueries, communityQueries, billingQueries, expenseItemQueries } = require('./database/queries');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -437,6 +437,22 @@ app.get('/api/trips/:userId', async (req, res) => {
   }
 });
 
+app.patch('/api/trips/:id/status', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    const result = await pool.query(
+      'UPDATE trips SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *',
+      [status, id]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Trip not found' });
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Update trip status error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Get user profile
 app.get('/api/users/:userId', async (req, res) => {
   try {
@@ -494,6 +510,27 @@ app.post('/api/packing/:tripId', async (req, res) => {
     res.status(201).json(inserted);
   } catch (error) {
     console.error('Create packing items error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.patch('/api/packing/reset/:tripId', async (req, res) => {
+  try {
+    const { tripId } = req.params;
+    // Reset all items for this trip
+    await pool.query(
+      'UPDATE packing_items SET is_packed = false WHERE trip_id = $1',
+      [tripId]
+    );
+    
+    // Fetch and return the updated list to ensure frontend sync
+    const updatedResult = await pool.query(
+      'SELECT * FROM packing_items WHERE trip_id = $1 ORDER BY id ASC',
+      [tripId]
+    );
+    res.json(updatedResult.rows);
+  } catch (error) {
+    console.error('Reset packing items error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -621,6 +658,36 @@ const seedCommunity = async () => {
   }
 };
 seedCommunity();
+
+const seedBilling = async () => {
+  try {
+    const check = await pool.query('SELECT count(*) FROM invoices');
+    if (parseInt(check.rows[0].count) === 0) {
+      const users = await pool.query('SELECT id FROM users LIMIT 1');
+      if (users.rows.length > 0) {
+        const userId = users.rows[0].id;
+        const trips = await pool.query('SELECT id FROM trips WHERE user_id = $1 LIMIT 1', [userId]);
+        const tripId = trips.rows.length > 0 ? trips.rows[0].id : null;
+
+        const invoices = [
+          [userId, tripId, 1250.00, '2026-06-15', 'Pending', 'Accommodation and flights for summer trip.'],
+          [userId, tripId, 450.00, '2026-05-20', 'Paid', 'Local tours and activity bookings.']
+        ];
+
+        for (const inv of invoices) {
+          const result = await pool.query(billingQueries.createInvoice, inv);
+          if (inv[4] === 'Paid') {
+            await pool.query(billingQueries.createPayment, [result.rows[0].id, inv[2], 'Credit Card', 'TXN_SEED_123']);
+          }
+        }
+        console.log('Billing data seeded');
+      }
+    }
+  } catch (err) {
+    console.error('Seed billing error:', err);
+  }
+};
+seedBilling();
 
 // --- Community Likes ---
 app.post('/api/community/posts/:postId/like', async (req, res) => {
@@ -875,9 +942,6 @@ app.get('/api/admin/stats', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
 
 // --- Trip Notes ---
 app.get('/api/notes/:tripId', async (req, res) => {
@@ -933,3 +997,124 @@ app.delete('/api/notes/:id', async (req, res) => {
     res.status(500).json({ error: 'Failed to delete note' });
   }
 });
+
+// --- Billing Endpoints ---
+app.get('/api/billing/invoices/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const result = await pool.query(billingQueries.getInvoicesByUser, [userId]);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Get invoices error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/api/billing/invoices', async (req, res) => {
+  try {
+    const { user_id, trip_id, amount, due_date, status, description } = req.body;
+    const result = await pool.query(billingQueries.createInvoice, [
+      user_id, trip_id || null, amount, due_date, status || 'Pending', description || null
+    ]);
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error('Create invoice error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get('/api/billing/payments/:invoiceId', async (req, res) => {
+  try {
+    const { invoiceId } = req.params;
+    const result = await pool.query(billingQueries.getPaymentsByInvoice, [invoiceId]);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Get payments error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/api/billing/payments', async (req, res) => {
+  try {
+    const { invoice_id, amount, payment_method, transaction_id } = req.body;
+
+    // Record payment
+    const paymentResult = await pool.query(billingQueries.createPayment, [
+      invoice_id, amount, payment_method || 'Other', transaction_id || null
+    ]);
+
+    // Update invoice status if amount paid is sufficient (simplified)
+    await pool.query(billingQueries.updateInvoiceStatus, ['Paid', invoice_id]);
+
+    res.status(201).json(paymentResult.rows[0]);
+  } catch (error) {
+    console.error('Create payment error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get('/api/billing/itinerary-budget/:tripId', async (req, res) => {
+  try {
+    const { tripId } = req.params;
+    const result = await pool.query(billingQueries.getItineraryBudget, [tripId]);
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Get itinerary budget error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// --- Expense Items (Calculator) Endpoints ---
+app.get('/api/billing/expenses/:tripId', async (req, res) => {
+  try {
+    const { tripId } = req.params;
+    const result = await pool.query(expenseItemQueries.getExpensesByTrip, [tripId]);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Get expenses error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/api/billing/expenses', async (req, res) => {
+  try {
+    const { user_id, trip_id, category, description, quantity_details, unit_cost, total_amount } = req.body;
+    const result = await pool.query(expenseItemQueries.createExpenseItem, [
+      user_id, trip_id, category, description, quantity_details, unit_cost, total_amount
+    ]);
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error('Create expense item error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.put('/api/billing/expenses/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { category, description, quantity_details, unit_cost, total_amount } = req.body;
+    const result = await pool.query(expenseItemQueries.updateExpenseItem, [
+      category, description, quantity_details, unit_cost, total_amount, id
+    ]);
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Update expense item error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.delete('/api/billing/expenses/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await pool.query(expenseItemQueries.deleteExpenseItem, [id]);
+    res.json({ message: 'Expense item deleted' });
+  } catch (error) {
+    console.error('Delete expense item error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
+

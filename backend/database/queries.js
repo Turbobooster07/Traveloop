@@ -103,8 +103,92 @@ const communityQueries = {
   `
 };
 
+const billingQueries = {
+  // Get all invoices for a user
+  getInvoicesByUser: `
+    SELECT i.*, t.destination as trip_name
+    FROM invoices i
+    LEFT JOIN trips t ON i.trip_id = t.id
+    WHERE i.user_id = $1
+    ORDER BY i.due_date ASC
+  `,
+
+  // Create a new invoice
+  createInvoice: `
+    INSERT INTO invoices (user_id, trip_id, amount, due_date, status, description)
+    VALUES ($1, $2, $3, $4, $5, $6)
+    RETURNING *
+  `,
+
+  // Get payments for an invoice
+  getPaymentsByInvoice: `
+    SELECT * FROM payments WHERE invoice_id = $1 ORDER BY payment_date DESC
+  `,
+
+  // Record a payment
+  createPayment: `
+    INSERT INTO payments (invoice_id, amount, payment_method, transaction_id)
+    VALUES ($1, $2, $3, $4)
+    RETURNING *
+  `,
+
+  // Update invoice status
+  updateInvoiceStatus: `
+    UPDATE invoices SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *
+  `,
+
+  // Get total budgeted from itinerary for a trip
+  getItineraryBudget: `
+    SELECT COALESCE(SUM(budget), 0) as total_budget
+    FROM itinerary_stops s
+    JOIN itinerary_cities c ON s.city_id = c.id
+    JOIN itinerary_sections sec ON c.section_id = sec.id
+    WHERE sec.trip_id = $1
+  `
+};
+
+const expenseItemQueries = {
+  // Get all expense items for a trip
+  getExpensesByTrip: `
+    SELECT * FROM expense_items WHERE trip_id = $1 ORDER BY created_at ASC
+  `,
+
+  // Get all expense items for a user
+  getExpensesByUser: `
+    SELECT * FROM expense_items WHERE user_id = $1 ORDER BY created_at DESC
+  `,
+
+  // Create a new expense item
+  createExpenseItem: `
+    INSERT INTO expense_items (user_id, trip_id, category, description, quantity_details, unit_cost, total_amount)
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
+    RETURNING *
+  `,
+
+  // Update an expense item
+  updateExpenseItem: `
+    UPDATE expense_items 
+    SET 
+      category = $1, 
+      description = $2, 
+      quantity_details = $3, 
+      unit_cost = $4, 
+      total_amount = $5,
+      updated_at = CURRENT_TIMESTAMP
+    WHERE id = $6
+    RETURNING *
+  `,
+
+  // Delete an expense item
+  deleteExpenseItem: `
+    DELETE FROM expense_items WHERE id = $1 RETURNING id
+  `
+};
+
 module.exports = {
   userQueries,
   tripQueries,
-  communityQueries
+  communityQueries,
+  billingQueries,
+  expenseItemQueries
 };

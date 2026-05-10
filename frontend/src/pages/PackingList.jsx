@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import Navbar from '../components/Navbar';
 
 const categories = ['Documents', 'Clothing', 'Electronics'];
 
@@ -18,6 +19,10 @@ const PackingList = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [newItem, setNewItem] = useState({ name: '', category: 'Documents' });
+  const [shareFeedback, setShareFeedback] = useState('');
+  
+  // Guard to prevent double-initialization (e.g. in React Strict Mode)
+  const isInitializing = useRef(false);
 
   useEffect(() => {
     if (trip?.id) {
@@ -26,11 +31,14 @@ const PackingList = () => {
   }, [trip]);
 
   const fetchPackingItems = async () => {
+    if (isInitializing.current) return;
+    
     try {
       const res = await fetch(`http://localhost:5000/api/packing/${trip.id}`);
       if (res.ok) {
         const data = await res.json();
-        if (data.length === 0) {
+        if (data.length === 0 && !isInitializing.current) {
+          isInitializing.current = true;
           // Initialize with default items if empty
           const initialItems = [];
           Object.entries(defaultItems).forEach(([category, names]) => {
@@ -39,7 +47,6 @@ const PackingList = () => {
             });
           });
           
-          // Save default items to backend
           const saveRes = await fetch(`http://localhost:5000/api/packing/${trip.id}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -69,7 +76,7 @@ const PackingList = () => {
         body: JSON.stringify({ is_packed: !currentStatus })
       });
       if (res.ok) {
-        setItems(items.map(item => 
+        setItems(prev => prev.map(item => 
           item.id === itemId ? { ...item, is_packed: !currentStatus } : item
         ));
       }
@@ -90,7 +97,7 @@ const PackingList = () => {
       });
       if (res.ok) {
         const saved = await res.json();
-        setItems([...items, ...saved]);
+        setItems(prev => [...prev, ...saved]);
         setNewItem({ ...newItem, name: '' });
       }
     } catch (err) {
@@ -104,11 +111,43 @@ const PackingList = () => {
         method: 'DELETE'
       });
       if (res.ok) {
-        setItems(items.filter(item => item.id !== itemId));
+        setItems(prev => prev.filter(item => item.id !== itemId));
       }
     } catch (err) {
       console.error('Failed to delete item', err);
     }
+  };
+
+  const handleResetAll = async () => {
+    if (!window.confirm('Are you sure you want to uncheck all items?')) return;
+    try {
+      const res = await fetch(`http://localhost:5000/api/packing/reset/${trip.id}`, {
+        method: 'PATCH'
+      });
+      if (res.ok) {
+        const updatedItems = await res.json();
+        // Fully replace state with backend response to prevent any client-side duplication
+        setItems(updatedItems);
+      }
+    } catch (err) {
+      console.error('Failed to reset items', err);
+    }
+  };
+
+  const handleShare = () => {
+    const packedCount = items.filter(i => i.is_packed).length;
+    const totalCount = items.length;
+    const shareText = `My Packing List for ${trip.destination} (${packedCount}/${totalCount} packed):\n\n` + 
+      categories.map(cat => {
+        const catItems = items.filter(i => i.category === cat);
+        if (catItems.length === 0) return '';
+        return `${cat}:\n` + catItems.map(i => `${i.is_packed ? '[x]' : '[ ]'} ${i.item_name}`).join('\n');
+      }).join('\n\n');
+
+    navigator.clipboard.writeText(shareText).then(() => {
+      setShareFeedback('List copied to clipboard!');
+      setTimeout(() => setShareFeedback(''), 3000);
+    });
   };
 
   if (!user) {
@@ -130,19 +169,7 @@ const PackingList = () => {
 
   return (
     <div className="dash-wrapper">
-      <nav className="dash-nav">
-        <div className="dash-logo" onClick={() => navigate('/dashboard', { state: { user } })} style={{ cursor: 'pointer' }}>
-          <h1>Traveloop</h1>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <button onClick={() => navigate('/my-trips', { state: { user } })} className="login-btn" style={{ padding: '8px 20px', background: 'var(--card-bg)', color: 'var(--text-muted)', border: '1px solid var(--border-medium)' }}>
-            My Trips
-          </button>
-          <div className="dash-profile">
-            {user.first_name.charAt(0)}{user.last_name.charAt(0)}
-          </div>
-        </div>
-      </nav>
+      <Navbar user={user} />
 
       <div className="dash-container" style={{ maxWidth: '800px' }}>
         <header style={{ marginBottom: '40px', textAlign: 'center' }}>
@@ -150,6 +177,22 @@ const PackingList = () => {
             Packing List for {trip?.destination}
           </h1>
           <p style={{ color: 'var(--text-muted)' }}>Get ready for your adventure!</p>
+
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginTop: '20px' }}>
+            <button 
+              onClick={handleShare}
+              style={{ padding: '8px 16px', borderRadius: '10px', border: '1px solid var(--border-medium)', background: '#fff', fontSize: '14px', fontWeight: '600', cursor: 'pointer', color: 'var(--text-main)' }}
+            >
+              Share List
+            </button>
+            <button 
+              onClick={handleResetAll}
+              style={{ padding: '8px 16px', borderRadius: '10px', border: '1px solid #ff4d4d', background: '#fff', fontSize: '14px', fontWeight: '600', cursor: 'pointer', color: '#ff4d4d' }}
+            >
+              Reset All
+            </button>
+          </div>
+          {shareFeedback && <p style={{ color: 'var(--accent-green-text, #047857)', fontSize: '13px', marginTop: '10px', fontWeight: '600' }}>{shareFeedback}</p>}
         </header>
 
         <form onSubmit={handleAddItem} style={{ 

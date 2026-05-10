@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import Navbar from '../components/Navbar';
 
 const DayWiseItinerary = () => {
   const navigate = useNavigate();
@@ -150,84 +151,7 @@ const DayWiseItinerary = () => {
 
   return (
     <div className="dash-wrapper">
-      {/* Navbar matching other screens */}
-      <nav className="dash-nav">
-        <div className="dash-logo" onClick={() => navigate('/dashboard', { state: { user } })} style={{ cursor: 'pointer' }}>
-          <h1>Traveloop</h1>
-        </div>
-        <div className="dash-actions" style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-          <button
-            onClick={() => navigate('/my-trips', { state: { user } })}
-            style={{
-              padding: '10px 20px',
-              background: 'var(--card-bg)',
-              backdropFilter: 'blur(16px)',
-              border: '1px solid var(--border-medium)',
-              borderRadius: '14px',
-              fontSize: '14px',
-              fontWeight: '600',
-              color: 'var(--text-muted)',
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-main)'; e.currentTarget.style.background = 'rgba(255,255,255,0.6)'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = 'var(--card-bg)'; }}
-          >
-            🗺️ My Trips
-          </button>
-          <button
-            onClick={() => navigate('/community', { state: { user } })}
-            style={{
-              padding: '10px 20px',
-              background: 'var(--card-bg)',
-              backdropFilter: 'blur(16px)',
-              border: '1px solid var(--border-medium)',
-              borderRadius: '14px',
-              fontSize: '14px',
-              fontWeight: '600',
-              color: 'var(--text-muted)',
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-main)'; e.currentTarget.style.background = 'rgba(255,255,255,0.6)'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = 'var(--card-bg)'; }}
-          >
-            👥 Community
-          </button>
-          <button
-            onClick={() => navigate('/notes', { state: { user } })}
-            style={{
-              padding: '10px 20px',
-              background: 'var(--card-bg)',
-              backdropFilter: 'blur(16px)',
-              border: '1px solid var(--border-medium)',
-              borderRadius: '14px',
-              fontSize: '14px',
-              fontWeight: '600',
-              color: 'var(--text-muted)',
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-main)'; e.currentTarget.style.background = 'rgba(255,255,255,0.6)'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = 'var(--card-bg)'; }}
-          >
-            📔 Trip Notes
-          </button>
-          <button onClick={() => navigate('/')} className="dash-btn-chip" style={{ background: 'transparent', border: '1px solid var(--border-medium)' }}>
-            Logout
-          </button>
-          <div className="dash-profile" onClick={() => navigate('/profile')} title="View Profile">
-            {user.profile_pic ? (
-              <img src={user.profile_pic} alt="Profile" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
-            ) : (
-              `${user.first_name?.charAt(0)}${user.last_name?.charAt(0)}`
-            )}
-          </div>
-        </div>
-      </nav>
+      <Navbar user={user} />
 
       <div className="dash-container" style={{ maxWidth: '900px', padding: '40px 5%' }}>
         <header style={{ marginBottom: '40px', textAlign: 'center' }}>

@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Navbar from '../components/Navbar';
 import './community.css';
 
 const API = 'http://localhost:5000/api/community';
@@ -222,8 +223,6 @@ const Community = () => {
 
   // ─── Helpers ──────────────────────────────────────────────
 
-  const handleLogout = () => { localStorage.removeItem('user'); navigate('/'); };
-
   const getInitials = (first, last) => `${first?.charAt(0) || ''}${last?.charAt(0) || ''}`;
 
   const timeAgo = (dateStr) => {
@@ -264,23 +263,7 @@ const Community = () => {
       <div className="bg-shape-purple-circle"></div>
       <div className="bg-shape-green-blob"></div>
 
-      {/* Navbar */}
-      <nav className="dash-nav">
-        <div className="dash-logo" onClick={() => navigate('/dashboard', { state: { user } })} style={{ cursor: 'pointer' }}>
-          <h1>Traveloop</h1>
-        </div>
-        <div className="dash-actions" style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-          <button onClick={() => navigate('/my-trips', { state: { user } })} className="nav-link-btn">🗺️ My Trips</button>
-          <button className="nav-link-btn nav-link-active">👥 Community</button>
-          <button onClick={() => navigate('/notes', { state: { user } })} className="nav-link-btn">📔 Trip Notes</button>
-          <button onClick={handleLogout} className="dash-btn-chip" style={{ background: 'transparent', border: '1px solid var(--border-medium)' }}>Logout</button>
-          <div className="dash-profile" onClick={() => navigate('/profile')} title="View Profile">
-            {user.profile_pic ? (
-              <img src={user.profile_pic} alt="Avatar" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
-            ) : getInitials(user.first_name, user.last_name)}
-          </div>
-        </div>
-      </nav>
+      <Navbar user={user} />
 
       <div className="community-page">
         {/* Community Header */}
