@@ -32,6 +32,8 @@ pool.connect((err, client, release) => {
   release();
 });
 
+
+
 // Routes
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Backend is running' });
