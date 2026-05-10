@@ -1,33 +1,33 @@
 :root {
-    /* New UI Color Palette (Warm Earthy/Pastel) */
-    --tea-green: #ccd5ae;
-    --beige: #e9edc9;
-    --cornsilk: #fefae0;
-    --papaya-whip: #faedcd;
-    --light-bronze: #d4a373;
+    /* New UI Color Palette (Cotton Candy / Vaporwave Pastel) */
+    --thistle: #cdb4db;
+    --pastel-petal: #ffc8dd;
+    --baby-pink: #ffafcc;
+    --icy-blue: #bde0fe;
+    --sky-blue: #a2d2ff;
 
-    --bg-color: var(--cornsilk);
-    --card-bg: rgba(233, 237, 201, 0.5); /* Beige glass */
-    --text-main: #4a3a2a; /* Warm dark brown for readability */
-    --text-muted: #8b7355; /* Muted warm brown */
-    --border-light: rgba(212, 163, 115, 0.2); /* Light bronze */
-    --border-medium: rgba(212, 163, 115, 0.4);
+    --bg-color: #f7fbff; /* Soft icy-blue tinted background */
+    --card-bg: rgba(255, 255, 255, 0.5); /* Bright frosted glass */
+    --text-main: #2b3a4a; /* Deep blue/grey for elegant contrast */
+    --text-muted: #6b7c93;
+    --border-light: rgba(162, 210, 255, 0.3); /* sky-blue */
+    --border-medium: rgba(162, 210, 255, 0.5);
     
-    --accent-green-bg: var(--tea-green);
-    --accent-green-text: #4d5731;
-    --accent-pink-bg: var(--papaya-whip);
-    --accent-pink-text: #6b4d1b;
-    --accent-yellow-bg: var(--beige);
-    --accent-yellow-text: #5a5f27;
+    --accent-green-bg: var(--icy-blue);
+    --accent-green-text: #2f6b9c;
+    --accent-pink-bg: var(--pastel-petal);
+    --accent-pink-text: #96426b;
+    --accent-yellow-bg: var(--thistle);
+    --accent-yellow-text: #603d75;
 
-    --input-bg: rgba(254, 250, 224, 0.6);
-    --input-border: var(--light-bronze);
-    --input-focus: var(--light-bronze);
+    --input-bg: rgba(255, 255, 255, 0.6);
+    --input-border: var(--sky-blue);
+    --input-focus: var(--baby-pink);
     
-    --shadow-soft: 0 4px 20px rgba(212, 163, 115, 0.15);
-    --shadow-hover: 0 12px 30px rgba(212, 163, 115, 0.25);
-    --cta-gradient: linear-gradient(135deg, var(--light-bronze) 0%, var(--papaya-whip) 100%);
-    --cta-shadow: 0 12px 24px rgba(212, 163, 115, 0.3);
+    --shadow-soft: 0 4px 20px rgba(162, 210, 255, 0.15);
+    --shadow-hover: 0 12px 30px rgba(255, 175, 204, 0.25);
+    --cta-gradient: linear-gradient(135deg, var(--sky-blue) 0%, var(--baby-pink) 100%);
+    --cta-shadow: 0 12px 24px rgba(255, 175, 204, 0.4);
 }
 
 * {
@@ -64,92 +64,92 @@ body::before, body::after,
 }
 
 body::before {
-    background: var(--tea-green);
+    background: var(--thistle);
     width: 600px;
     height: 600px;
     top: -100px;
     left: -100px;
     border-radius: 50%;
     filter: blur(120px);
-    opacity: 0.8;
+    opacity: 0.7;
     animation-delay: 0s;
     animation-duration: 25s;
 }
 
 body::after {
-    background: var(--papaya-whip);
+    background: var(--baby-pink);
     width: 700px;
     height: 700px;
     bottom: -100px;
     right: -100px;
     border-radius: 50%;
     filter: blur(150px);
-    opacity: 0.7;
+    opacity: 0.6;
     animation-delay: -10s;
     animation-duration: 30s;
 }
 
 .bg-shape-yellow {
-    background: var(--beige);
+    background: var(--sky-blue);
     width: 500px;
     height: 500px;
     top: 20%;
     right: 20%;
     border-radius: 50%;
     filter: blur(130px);
-    opacity: 0.8;
+    opacity: 0.7;
     animation-delay: -5s;
     animation-duration: 22s;
 }
 
 .bg-shape-blue-square {
-    background: var(--light-bronze);
+    background: var(--icy-blue);
     width: 400px;
     height: 400px;
     top: 40%;
     left: 10%;
     border-radius: 80px;
     filter: blur(100px);
-    opacity: 0.4;
+    opacity: 0.8;
     animation-delay: -12s;
     animation-duration: 28s;
 }
 
 .bg-shape-pink-blob {
-    background: var(--papaya-whip);
+    background: var(--pastel-petal);
     width: 450px;
     height: 450px;
     top: 10%;
     left: 40%;
     border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
     filter: blur(120px);
-    opacity: 0.8;
+    opacity: 0.7;
     animation-delay: -3s;
     animation-duration: 32s;
 }
 
 .bg-shape-purple-circle {
-    background: var(--tea-green);
+    background: var(--thistle);
     width: 300px;
     height: 300px;
     bottom: 10%;
     left: 30%;
     border-radius: 50%;
     filter: blur(90px);
-    opacity: 0.7;
+    opacity: 0.6;
     animation-delay: -18s;
     animation-duration: 24s;
 }
 
 .bg-shape-green-blob {
-    background: var(--beige);
+    background: var(--baby-pink);
     width: 550px;
     height: 550px;
     bottom: 20%;
     right: 10%;
     border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
     filter: blur(140px);
-    opacity: 0.7;
+    opacity: 0.6;
     animation-delay: -8s;
     animation-duration: 26s;
 }
@@ -190,10 +190,10 @@ body::after {
     top: 0;
     z-index: 50;
     width: 100%;
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(24px) saturate(120%);
+    -webkit-backdrop-filter: blur(24px) saturate(120%);
+    border-bottom: 1px solid var(--border-light);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -228,7 +228,7 @@ body::after {
     cursor: pointer;
     font-weight: 600;
     font-size: 15px;
-    border: 2px solid #ffffff;
+    border: 2px solid rgba(255, 255, 255, 0.6);
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
     transition: transform 0.2s, box-shadow 0.2s;
 }
